@@ -1,0 +1,24 @@
+{
+	"modinfoversion": 2,
+
+	"modlist": [
+		{
+			"modid": "FractalCrates",
+			"name": "Fractal Crates",
+			"description": "A stack of stacks of stacks of stacks…",
+			"version": "1.0.1",
+			"mcversion": "1.6.2",
+			"url": "https://github.com/benblank/FractalCrates",
+			"updateUrl": "",
+			"authors": [ "535" ],
+			"credits": "",
+			"logoFile": "",
+			"screenshots": [],
+			"parent": "",
+			"requiredMods": [ "Forge" ],
+			"dependencies": [],
+			"dependants": [],
+			"useDependencyInformation": "true"
+		}
+	]
+}
