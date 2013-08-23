@@ -20,7 +20,6 @@ public class Crate extends BlockContainer {
 
 	@Override
 	public TileEntity createNewTileEntity(final World world) {
-		// TODO Auto-generated method stub
-		return null;
+		return new CrateTileEntity();
 	}
 }

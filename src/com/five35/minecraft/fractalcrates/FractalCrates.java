@@ -22,8 +22,9 @@ public class FractalCrates {
 	@EventHandler
 	public static void init(@SuppressWarnings("unused") final FMLInitializationEvent event) {
 		FractalCrates.crate = new Crate(FractalCrates.crateID);
-		GameRegistry.registerBlock(FractalCrates.crate, FractalCrates.crate.getUnlocalizedName());
 
+		GameRegistry.registerBlock(FractalCrates.crate, FractalCrates.crate.getUnlocalizedName());
+		GameRegistry.registerTileEntity(CrateTileEntity.class, "fractalCrate");
 		GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(FractalCrates.crate), new String[] { "x x", "x x", "xxx" }, Character.valueOf('x'), "plankWood"));
 	}
 
