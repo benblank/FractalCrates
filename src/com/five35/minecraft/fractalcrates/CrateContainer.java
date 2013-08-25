@@ -20,6 +20,10 @@ public class CrateContainer extends Container {
 
 		final GuiHelper helper = new GuiHelper(CrateContainer.WIDTH, CrateContainer.HEIGHT);
 
+		for (final Slot slot : helper.getInventorySlots(crate, 1, 1)) {
+			this.addSlotToContainer(slot);
+		}
+
 		for (final Slot slot : helper.getPlayerSlots(player)) {
 			this.addSlotToContainer(slot);
 		}

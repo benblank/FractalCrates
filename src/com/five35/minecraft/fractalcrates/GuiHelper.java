@@ -46,13 +46,23 @@ public class GuiHelper {
 		this.textHeight = textHeight;
 	}
 
-	public List<Slot> getInventorySlots(final IInventory inventory) {
-		return new ArrayList<Slot>();
+	public List<Slot> getInventorySlots(final IInventory inventory, final int cols, final int rows) {
+		return this.getInventorySlots(inventory, 0, cols, rows);
+	}
+
+	public List<Slot> getInventorySlots(final IInventory inventory, final int offset, final int cols, final int rows) {
+		final int innerWidth = this.width - this.border * 2 - this.padding * 2;
+		final int innerHeight = this.height - this.border * 2 - this.padding * 2 - this.textHeight * 2 - GuiHelper.SLOT_SIZE * 4;
+
+		final int left = (innerWidth - cols * GuiHelper.SLOT_SIZE) / 2 + this.border + this.padding;
+		final int top = (innerHeight - rows * GuiHelper.SLOT_SIZE) / 2 + this.border + this.textHeight;
+
+		return GuiHelper.getInventorySlots(inventory, offset, cols, rows, left, top);
 	}
 
 	public List<Slot> getPlayerSlots(final EntityPlayer player) {
 		final List<Slot> slots = new ArrayList<Slot>();
-		final int left = this.border + this.padding;
+		final int left = (this.width - GuiHelper.SLOT_SIZE * 9) / 2;
 		final int top = this.height - this.border - this.padding - GuiHelper.SLOT_SIZE;
 
 		slots.addAll(GuiHelper.getInventorySlots(player.inventory, 0, 9, 1, left, top));

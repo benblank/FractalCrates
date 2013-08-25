@@ -12,7 +12,7 @@ public class ClientProxy extends CommonProxy {
 			final TileEntity te = world.getBlockTileEntity(x, y, z);
 
 			if (te != null && te instanceof CrateTileEntity) {
-				return new CrateGui((CrateContainer) this.getServerGuiElement(id, player, world, x, y, z));
+				return new CrateGui(new CrateContainer(player, (CrateTileEntity) te));
 			}
 		}
 
