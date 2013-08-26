@@ -6,11 +6,11 @@ import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 
 public class CrateContainer extends Container {
-	final static int WIDTH = 176;
-	final static int HEIGHT = 166;
+	public final static int WIDTH = 176;
+	public final static int HEIGHT = 166;
 
-	final EntityPlayer player;
-	final CrateTileEntity crate;
+	public final EntityPlayer player;
+	public final CrateTileEntity crate;
 
 	public CrateContainer(final EntityPlayer player, final CrateTileEntity crate) {
 		this.player = player;

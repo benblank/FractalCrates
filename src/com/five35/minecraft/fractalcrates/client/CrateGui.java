@@ -1,5 +1,7 @@
-package com.five35.minecraft.fractalcrates;
+package com.five35.minecraft.fractalcrates.client;
 
+import com.five35.minecraft.fractalcrates.CrateContainer;
+import com.five35.minecraft.fractalcrates.GuiHelper;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.util.ResourceLocation;
 import org.lwjgl.opengl.GL11;

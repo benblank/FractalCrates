@@ -27,7 +27,7 @@ public class Crate extends BlockContainer {
 
 	@Override
 	public int getRenderType() {
-		return FractalCrates.crateRenderer.getRenderId();
+		return FractalCrates.proxy.crateRendererId;
 	}
 
 	@Override
@@ -35,7 +35,7 @@ public class Crate extends BlockContainer {
 		final TileEntity te = world.getBlockTileEntity(x, y, z);
 
 		if (te != null && te instanceof CrateTileEntity) {
-			player.openGui(FractalCrates.instance, FractalCrates.CRATE_GUI_ID, world, x, y, z);
+			player.openGui(FractalCrates.instance, FractalCrates.proxy.CRATE_GUI_ID, world, x, y, z);
 		}
 
 		return true;

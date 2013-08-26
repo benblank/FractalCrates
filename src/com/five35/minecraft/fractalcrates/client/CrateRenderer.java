@@ -1,4 +1,4 @@
-package com.five35.minecraft.fractalcrates;
+package com.five35.minecraft.fractalcrates.client;
 
 import cpw.mods.fml.client.registry.ISimpleBlockRenderingHandler;
 import net.minecraft.block.Block;
@@ -10,20 +10,6 @@ import net.minecraftforge.common.ForgeDirection;
 
 public class CrateRenderer implements ISimpleBlockRenderingHandler {
 	private final int renderId;
-
-	public CrateRenderer(int renderId) {
-		this.renderId = renderId;
-	}
-
-	@Override
-	public int getRenderId() {
-		return this.renderId;
-	}
-
-	@Override
-	public void renderInventoryBlock(final Block block, final int metadata, final int modelId, final RenderBlocks renderer) {
-		// TODO Auto-generated method stub
-	}
 
 	private static boolean renderSide(final IBlockAccess world, final int x, final int y, final int z, final int side, final Block block, final RenderBlocks renderer) {
 		final ForgeDirection dir = ForgeDirection.getOrientation(side);
@@ -67,6 +53,20 @@ public class CrateRenderer implements ISimpleBlockRenderingHandler {
 		}
 
 		return false;
+	}
+
+	public CrateRenderer(final int renderId) {
+		this.renderId = renderId;
+	}
+
+	@Override
+	public int getRenderId() {
+		return this.renderId;
+	}
+
+	@Override
+	public void renderInventoryBlock(final Block block, final int metadata, final int modelId, final RenderBlocks renderer) {
+		// TODO Auto-generated method stub
 	}
 
 	@Override
