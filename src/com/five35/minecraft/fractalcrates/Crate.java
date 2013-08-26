@@ -14,6 +14,7 @@ public class Crate extends BlockContainer {
 
 		this.setCreativeTab(CreativeTabs.tabDecorations);
 		this.setHardness(2);
+		this.func_111022_d("fractalcrates:crate"); // setIconName
 		this.setResistance(10);
 		this.setStepSound(Block.soundWoodFootstep);
 		this.setUnlocalizedName("fractalCrate");
@@ -22,6 +23,11 @@ public class Crate extends BlockContainer {
 	@Override
 	public TileEntity createNewTileEntity(final World world) {
 		return new CrateTileEntity();
+	}
+
+	@Override
+	public int getRenderType() {
+		return FractalCrates.crateRenderer.getRenderId();
 	}
 
 	@Override

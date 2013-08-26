@@ -1,5 +1,6 @@
 package com.five35.minecraft.fractalcrates;
 
+import cpw.mods.fml.client.registry.RenderingRegistry;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.Mod.Instance;
@@ -26,17 +27,22 @@ public class FractalCrates {
 
 	static Configuration config;
 	static int crateId;
+
 	public static Crate crate;
+	public static CrateRenderer crateRenderer;
 
 	@EventHandler
 	public static void init(@SuppressWarnings("unused") final FMLInitializationEvent event) {
 		FractalCrates.crate = new Crate(FractalCrates.crateId);
+		FractalCrates.crateRenderer = new CrateRenderer(RenderingRegistry.getNextAvailableRenderId());
 
 		GameRegistry.registerBlock(FractalCrates.crate, FractalCrates.crate.getUnlocalizedName());
 		GameRegistry.registerTileEntity(CrateTileEntity.class, "fractalCrate");
 		GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(FractalCrates.crate), new String[] { "x x", "x x", "xxx" }, Character.valueOf('x'), "plankWood"));
 
 		NetworkRegistry.instance().registerGuiHandler(FractalCrates.instance, FractalCrates.proxy);
+
+		RenderingRegistry.registerBlockHandler(FractalCrates.crateRenderer);
 	}
 
 	@EventHandler
