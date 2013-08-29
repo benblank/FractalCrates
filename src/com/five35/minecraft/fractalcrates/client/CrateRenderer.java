@@ -7,6 +7,7 @@ import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.util.Icon;
 import net.minecraft.world.IBlockAccess;
 import net.minecraftforge.common.ForgeDirection;
+import org.lwjgl.opengl.GL11;
 
 public class CrateRenderer implements ISimpleBlockRenderingHandler {
 	private final int renderId;
@@ -17,36 +18,76 @@ public class CrateRenderer implements ISimpleBlockRenderingHandler {
 		final int sideY = y + dir.offsetY;
 		final int sideZ = z + dir.offsetZ;
 
-		if (block.shouldSideBeRendered(world, sideX, sideY, sideZ, side)) {
-			final float color = side == 0 ? 0.5f : side == 1 ? 1.0f : side < 4 ? 0.8f : 0.6f;
+		if (world == null || block.shouldSideBeRendered(world, sideX, sideY, sideZ, side)) {
+			final Tessellator tessellator = Tessellator.instance;
 
-			Tessellator.instance.setBrightness(block.getMixedBrightnessForBlock(world, sideX, sideY, sideZ));
-			Tessellator.instance.setColorOpaque_F(color, color, color);
+			if (world == null) {
+				tessellator.startDrawingQuads();
+			} else {
+				final float color = side == 0 ? 0.5f : side == 1 ? 1.0f : side < 4 ? 0.8f : 0.6f;
+
+				tessellator.setBrightness(block.getMixedBrightnessForBlock(world, sideX, sideY, sideZ));
+				tessellator.setColorOpaque_F(color, color, color);
+			}
 
 			switch (side) {
 				case 0:
+					if (world == null) {
+						tessellator.setNormal(0, -1, 0);
+					}
+
 					renderer.renderFaceYNeg(block, x, y, z, block.getIcon(side, 0));
+
 					break;
 
 				case 1:
+					if (world == null) {
+						tessellator.setNormal(0, 1, 0);
+					}
+
 					renderer.renderFaceYPos(block, x, y, z, block.getIcon(side, 0));
+
 					break;
 
 				case 2:
+					if (world == null) {
+						tessellator.setNormal(0, 0, -1);
+					}
+
 					renderer.renderFaceZNeg(block, x, y, z, block.getIcon(side, 0));
+
 					break;
 
 				case 3:
+					if (world == null) {
+						tessellator.setNormal(0, 0, 1);
+					}
+
 					renderer.renderFaceZPos(block, x, y, z, block.getIcon(side, 0));
+
 					break;
 
 				case 4:
+					if (world == null) {
+						tessellator.setNormal(-1, 0, 0);
+					}
+
 					renderer.renderFaceXNeg(block, x, y, z, block.getIcon(side, 0));
+
 					break;
 
 				default: // 5
+					if (world == null) {
+						tessellator.setNormal(1, 0, 0);
+					}
+
 					renderer.renderFaceXPos(block, x, y, z, block.getIcon(side, 0));
+
 					break;
+			}
+
+			if (world == null) {
+				tessellator.draw();
 			}
 
 			return true;
@@ -66,7 +107,10 @@ public class CrateRenderer implements ISimpleBlockRenderingHandler {
 
 	@Override
 	public void renderInventoryBlock(final Block block, final int metadata, final int modelId, final RenderBlocks renderer) {
-		// TODO Auto-generated method stub
+		GL11.glPushMatrix();
+		GL11.glTranslated(-0.5, -0.5, -0.5);
+		this.renderWorldBlock(null, 0, 0, 0, block, modelId, renderer);
+		GL11.glPopMatrix();
 	}
 
 	@Override
@@ -80,7 +124,7 @@ public class CrateRenderer implements ISimpleBlockRenderingHandler {
 		rendered |= CrateRenderer.renderSide(world, x, y, z, 4, block, renderer);
 		rendered |= CrateRenderer.renderSide(world, x, y, z, 5, block, renderer);
 
-		if (block.shouldSideBeRendered(world, x, y + 1, z, 1)) {
+		if (world == null || block.shouldSideBeRendered(world, x, y + 1, z, 1)) {
 			final Icon icon = block.getIcon(1, 0);
 			final Tessellator tessellator = Tessellator.instance;
 
@@ -104,8 +148,13 @@ public class CrateRenderer implements ISimpleBlockRenderingHandler {
 			final double v15 = icon.getInterpolatedV(15);
 			final double v16 = icon.getMaxV();
 
-			tessellator.setBrightness(block.getMixedBrightnessForBlock(world, x, y + 1, z));
-			tessellator.setColorOpaque_F(1, 1, 1);
+			if (world == null) {
+				tessellator.startDrawingQuads();
+				tessellator.setNormal(0, 1, 0);
+			} else {
+				tessellator.setBrightness(block.getMixedBrightnessForBlock(world, x, y + 1, z));
+				tessellator.setColorOpaque_F(1, 1, 1);
+			}
 
 			// west rim
 			tessellator.addVertexWithUV(outerWest, y + 1, innerSouth, u0, v15);
@@ -131,7 +180,9 @@ public class CrateRenderer implements ISimpleBlockRenderingHandler {
 			tessellator.addVertexWithUV(innerEast, y + 1, innerSouth, u15, v15);
 			tessellator.addVertexWithUV(outerWest, y + 1, innerSouth, u0, v15);
 
-			tessellator.setBrightness(block.getMixedBrightnessForBlock(world, x, y + 1, z) - 1);
+			if (world != null) {
+				tessellator.setBrightness(block.getMixedBrightnessForBlock(world, x, y + 1, z) - 1);
+			}
 
 			// bottom
 			tessellator.addVertexWithUV(innerWest, bottom, innerSouth, u1, v15);
@@ -139,7 +190,13 @@ public class CrateRenderer implements ISimpleBlockRenderingHandler {
 			tessellator.addVertexWithUV(innerEast, bottom, innerNorth, u15, v1);
 			tessellator.addVertexWithUV(innerWest, bottom, innerNorth, u1, v1);
 
-			tessellator.setColorOpaque_F(0.6f, 0.6f, 0.6f);
+			if (world == null) {
+				tessellator.draw();
+				tessellator.startDrawingQuads();
+				tessellator.setNormal(1, 0, 0);
+			} else {
+				tessellator.setColorOpaque_F(0.6f, 0.6f, 0.6f);
+			}
 
 			// west wall
 			tessellator.addVertexWithUV(innerWest, bottom, innerSouth, u1, v15);
@@ -147,13 +204,25 @@ public class CrateRenderer implements ISimpleBlockRenderingHandler {
 			tessellator.addVertexWithUV(innerWest, y + 1, innerNorth, u15, v0);
 			tessellator.addVertexWithUV(innerWest, y + 1, innerSouth, u1, v0);
 
+			if (world == null) {
+				tessellator.draw();
+				tessellator.startDrawingQuads();
+				tessellator.setNormal(-1, 0, 0);
+			}
+
 			// east wall
 			tessellator.addVertexWithUV(innerEast, bottom, innerNorth, u1, v15);
 			tessellator.addVertexWithUV(innerEast, bottom, innerSouth, u15, v15);
 			tessellator.addVertexWithUV(innerEast, y + 1, innerSouth, u15, v0);
 			tessellator.addVertexWithUV(innerEast, y + 1, innerNorth, u1, v0);
 
-			tessellator.setColorOpaque_F(0.8f, 0.8f, 0.8f);
+			if (world == null) {
+				tessellator.draw();
+				tessellator.startDrawingQuads();
+				tessellator.setNormal(0, 0, 1);
+			} else {
+				tessellator.setColorOpaque_F(0.8f, 0.8f, 0.8f);
+			}
 
 			// north wall
 			tessellator.addVertexWithUV(innerWest, bottom, innerNorth, u1, v15);
@@ -161,11 +230,21 @@ public class CrateRenderer implements ISimpleBlockRenderingHandler {
 			tessellator.addVertexWithUV(innerEast, y + 1, innerNorth, u15, v0);
 			tessellator.addVertexWithUV(innerWest, y + 1, innerNorth, u1, v0);
 
+			if (world == null) {
+				tessellator.draw();
+				tessellator.startDrawingQuads();
+				tessellator.setNormal(0, 0, -1);
+			}
+
 			// south wall
 			tessellator.addVertexWithUV(innerEast, bottom, innerSouth, u1, v15);
 			tessellator.addVertexWithUV(innerWest, bottom, innerSouth, u15, v15);
 			tessellator.addVertexWithUV(innerWest, y + 1, innerSouth, u15, v0);
 			tessellator.addVertexWithUV(innerEast, y + 1, innerSouth, u1, v0);
+
+			if (world == null) {
+				tessellator.draw();
+			}
 		}
 
 		return rendered;
