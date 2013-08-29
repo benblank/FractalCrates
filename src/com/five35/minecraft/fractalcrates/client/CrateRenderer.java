@@ -73,12 +73,14 @@ public class CrateRenderer implements ISimpleBlockRenderingHandler {
 	public boolean renderWorldBlock(final IBlockAccess world, final int x, final int y, final int z, final Block block, final int modelId, final RenderBlocks renderer) {
 		boolean rendered = false;
 
-		// all faces other than YPos render normally
-		rendered |= CrateRenderer.renderSide(world, x, y, z, 0, block, renderer);
-		rendered |= CrateRenderer.renderSide(world, x, y, z, 2, block, renderer);
-		rendered |= CrateRenderer.renderSide(world, x, y, z, 3, block, renderer);
-		rendered |= CrateRenderer.renderSide(world, x, y, z, 4, block, renderer);
-		rendered |= CrateRenderer.renderSide(world, x, y, z, 5, block, renderer);
+
+		final RenderHelper helper = new RenderHelper(block, world, x, y, z);
+
+		helper.renderFace(ForgeDirection.DOWN);
+		helper.renderFace(ForgeDirection.NORTH);
+		helper.renderFace(ForgeDirection.SOUTH);
+		helper.renderFace(ForgeDirection.WEST);
+		helper.renderFace(ForgeDirection.EAST);
 
 		if (block.shouldSideBeRendered(world, x, y + 1, z, 1)) {
 			final Icon icon = block.getIcon(1, 0);
