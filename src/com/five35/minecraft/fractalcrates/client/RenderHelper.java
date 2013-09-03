@@ -79,9 +79,17 @@ public class RenderHelper {
 		}
 	}
 
+	final static Map<ForgeDirection, Float> dirColorScalar = new HashMap<ForgeDirection, Float>();
 	final static Map<ForgeDirection, ForgeDirection> dirTop = new HashMap<ForgeDirection, ForgeDirection>();
 
 	static {
+		RenderHelper.dirColorScalar.put(ForgeDirection.DOWN, Float.valueOf(0.5f));
+		RenderHelper.dirColorScalar.put(ForgeDirection.UP, Float.valueOf(1.0f));
+		RenderHelper.dirColorScalar.put(ForgeDirection.NORTH, Float.valueOf(0.8f));
+		RenderHelper.dirColorScalar.put(ForgeDirection.SOUTH, Float.valueOf(0.8f));
+		RenderHelper.dirColorScalar.put(ForgeDirection.WEST, Float.valueOf(0.6f));
+		RenderHelper.dirColorScalar.put(ForgeDirection.EAST, Float.valueOf(0.6f));
+
 		RenderHelper.dirTop.put(ForgeDirection.DOWN, ForgeDirection.NORTH);
 		RenderHelper.dirTop.put(ForgeDirection.UP, ForgeDirection.NORTH);
 		RenderHelper.dirTop.put(ForgeDirection.NORTH, ForgeDirection.UP);
@@ -247,6 +255,13 @@ public class RenderHelper {
 		brOcclusion = (brOcclusion + this.getOcclusion(bottom) + this.getOcclusion(right) + baseOcclusion) / 4;
 		trOcclusion = (trOcclusion + this.getOcclusion(top) + this.getOcclusion(right) + baseOcclusion) / 4;
 
+		final float colorScalar = RenderHelper.dirColorScalar.get(dir).floatValue();
+
+		tlOcclusion *= colorScalar;
+		blOcclusion *= colorScalar;
+		brOcclusion *= colorScalar;
+		trOcclusion *= colorScalar;
+
 		final double topV = icon.getInterpolatedV(v1);
 		final double rightU = icon.getInterpolatedU(u2);
 		final double bottomV = icon.getInterpolatedV(v2);
@@ -275,8 +290,10 @@ public class RenderHelper {
 		final double bottomV = icon.getInterpolatedV(v2);
 		final double leftU = icon.getInterpolatedU(u1);
 
+		final float colorScalar = RenderHelper.dirColorScalar.get(dir).floatValue();
+
 		Tessellator.instance.setBrightness(this.getLight(depth <= 0 ? Offset.create(dir) : Offset.get(0, 0, 0)));
-		Tessellator.instance.setColorOpaque_F(this.red, this.green, this.blue);
+		Tessellator.instance.setColorOpaque_F(this.red * colorScalar, this.green * colorScalar, this.blue * colorScalar);
 
 		this.addVertex(new Vertex(dir, depth, x1, y1), leftU, topV);
 		this.addVertex(new Vertex(dir, depth, x1, y2), leftU, bottomV);
