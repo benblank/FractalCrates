@@ -138,6 +138,10 @@ public class RenderHelper {
 		}
 	}
 
+	private void addVertex(final Vertex vertex, final double u, final double v) {
+		Tessellator.instance.addVertexWithUV(this.x + vertex.x, this.y + vertex.y, this.z + vertex.z, u, v);
+	}
+
 	private boolean doesBlockLight(final Offset offset) {
 		if (!this.blocksLight.containsKey(offset)) {
 			this.blocksLight.put(offset, Boolean.valueOf(!Block.canBlockGrass[this.world.getBlockId(this.x + offset.x, this.y + offset.y, this.z + offset.z)]));
@@ -176,114 +180,108 @@ public class RenderHelper {
 
 	public boolean renderFace(final ForgeDirection dir, final Icon icon) {
 		// defaults are no depth (at face) and full width/height of face/texture
-		return this.renderQuad(dir, icon, 0, 0, 1, 0, 1, 0, 16, 0, 16);
+		return this.renderQuad(dir, icon, 0, 0, 0, 1, 1, 0, 0, 16, 16);
 	}
 
-	public boolean renderQuad(final ForgeDirection dir, final Icon icon, final double depth, final double xMin, final double xMax, final double yMin, final double yMax, final double uMin, final double uMax, final double vMin, final double vMax) {
+	public boolean renderQuad(final ForgeDirection dir, final Icon icon, final double depth, final double x1, final double y1, final double x2, final double y2, final double u1, final double v1, final double u2, final double v2) {
 		if (!this.shouldRenderQuad(dir, depth)) {
 			return false;
 		}
 
-		int trLight = 0xF000F, tlLight = 0xF000F, blLight = 0xF000F, brLight = 0xF000F;
-		float trOcclusion = 1, tlOcclusion = 1, blOcclusion = 1, brOcclusion = 1;
+		if (this.useOcclusion) {
+			this.renderQuadWithOcclusion(dir, icon, depth, x1, y1, x2, y2, u1, v1, u2, v2);
+		} else {
+			this.renderQuadWithoutOcclusion(dir, icon, depth, x1, y1, x2, y2, u1, v1, u2, v2);
+		}
+
+		return true;
+	}
+
+	public void renderQuadWithOcclusion(final ForgeDirection dir, final Icon icon, final double depth, final double x1, final double y1, final double x2, final double y2, final double u1, final double v1, final double u2, final double v2) {
+		final ForgeDirection topDir = RenderHelper.dirTop.get(dir);
+		final ForgeDirection leftDir = topDir.getRotation(dir.getOpposite());
+		final Tessellator t = Tessellator.instance;
 
 		final Offset base = depth <= 0 ? Offset.create(dir) : Offset.get(0, 0, 0);
 		final int baseLight = this.getLight(base);
 
-		final ForgeDirection topDir = RenderHelper.dirTop.get(dir);
-		final ForgeDirection leftDir = topDir.getRotation(dir.getOpposite());
+		final float baseOcclusion = this.getOcclusion(Offset.get(0, 0, 0)); // MC doesn't offset occlusion based on depth
 
-		if (this.useOcclusion) {
-			final float baseOcclusion = this.getOcclusion(Offset.get(0, 0, 0)); // MC doesn't offset occlusion based on depth
+		final Offset top = base.add(topDir);
+		final Offset left = base.add(leftDir);
+		final Offset bottom = base.add(topDir.getOpposite());
+		final Offset right = base.add(leftDir.getOpposite());
 
-			final Offset top = base.add(topDir);
-			final Offset left = base.add(leftDir);
-			final Offset bottom = base.add(topDir.getOpposite());
-			final Offset right = base.add(leftDir.getOpposite());
+		final boolean topBlocksLight = this.doesBlockLight(top.add(base));
+		final boolean leftBlocksLight = this.doesBlockLight(left.add(base));
+		final boolean bottomBlocksLight = this.doesBlockLight(bottom.add(base));
+		final boolean rightBlocksLight = this.doesBlockLight(right.add(base));
 
-			final boolean topBlocksLight = this.doesBlockLight(top.add(base));
-			final boolean leftBlocksLight = this.doesBlockLight(left.add(base));
-			final boolean bottomBlocksLight = this.doesBlockLight(bottom.add(base));
-			final boolean rightBlocksLight = this.doesBlockLight(right.add(base));
+		int tlLight = topBlocksLight && leftBlocksLight ? this.getLight(left) : this.getLight(top.add(left));
+		int blLight = bottomBlocksLight && leftBlocksLight ? this.getLight(left) : this.getLight(bottom.add(left));
+		int brLight = bottomBlocksLight && rightBlocksLight ? this.getLight(right) : this.getLight(bottom.add(right));
+		int trLight = topBlocksLight && rightBlocksLight ? this.getLight(right) : this.getLight(top.add(right));
 
-			trLight = topBlocksLight && rightBlocksLight ? this.getLight(right) : this.getLight(top.add(right));
-			tlLight = topBlocksLight && leftBlocksLight ? this.getLight(left) : this.getLight(top.add(left));
-			blLight = bottomBlocksLight && leftBlocksLight ? this.getLight(left) : this.getLight(bottom.add(left));
-			brLight = bottomBlocksLight && rightBlocksLight ? this.getLight(right) : this.getLight(bottom.add(right));
+		int topLight = this.getLight(top);
+		int leftLight = this.getLight(left);
+		int bottomLight = this.getLight(bottom);
+		int rightLight = this.getLight(right);
 
-			int topLight = this.getLight(top);
-			int leftLight = this.getLight(left);
-			int bottomLight = this.getLight(bottom);
-			int rightLight = this.getLight(right);
+		topLight = topLight > 0 ? topLight : baseLight;
+		leftLight = leftLight > 0 ? leftLight : baseLight;
+		bottomLight = bottomLight > 0 ? bottomLight : baseLight;
+		rightLight = rightLight > 0 ? rightLight : baseLight;
 
-			topLight = topLight > 0 ? topLight : baseLight;
-			leftLight = leftLight > 0 ? leftLight : baseLight;
-			bottomLight = bottomLight > 0 ? bottomLight : baseLight;
-			rightLight = rightLight > 0 ? rightLight : baseLight;
+		tlLight = (tlLight > 0 ? tlLight : baseLight) + topLight + leftLight + baseLight >> 2;
+		blLight = (blLight > 0 ? blLight : baseLight) + bottomLight + leftLight + baseLight >> 2;
+		brLight = (brLight > 0 ? brLight : baseLight) + bottomLight + rightLight + baseLight >> 2;
+		trLight = (trLight > 0 ? trLight : baseLight) + topLight + rightLight + baseLight >> 2;
 
-			trLight = (trLight > 0 ? trLight : baseLight) + topLight + rightLight + baseLight >> 2;
-			tlLight = (tlLight > 0 ? tlLight : baseLight) + topLight + leftLight + baseLight >> 2;
-			blLight = (blLight > 0 ? blLight : baseLight) + bottomLight + leftLight + baseLight >> 2;
-			brLight = (brLight > 0 ? brLight : baseLight) + bottomLight + rightLight + baseLight >> 2;
+		float tlOcclusion = topBlocksLight && leftBlocksLight ? this.getOcclusion(left) : this.getOcclusion(top.add(left));
+		float blOcclusion = bottomBlocksLight && leftBlocksLight ? this.getOcclusion(left) : this.getOcclusion(bottom.add(left));
+		float brOcclusion = bottomBlocksLight && rightBlocksLight ? this.getOcclusion(right) : this.getOcclusion(bottom.add(right));
+		float trOcclusion = topBlocksLight && rightBlocksLight ? this.getOcclusion(right) : this.getOcclusion(top.add(right));
 
-			trOcclusion = topBlocksLight && rightBlocksLight ? this.getOcclusion(right) : this.getOcclusion(top.add(right));
-			tlOcclusion = topBlocksLight && leftBlocksLight ? this.getOcclusion(left) : this.getOcclusion(top.add(left));
-			blOcclusion = bottomBlocksLight && leftBlocksLight ? this.getOcclusion(left) : this.getOcclusion(bottom.add(left));
-			brOcclusion = bottomBlocksLight && rightBlocksLight ? this.getOcclusion(right) : this.getOcclusion(bottom.add(right));
+		tlOcclusion = (tlOcclusion + this.getOcclusion(top) + this.getOcclusion(left) + baseOcclusion) / 4;
+		blOcclusion = (blOcclusion + this.getOcclusion(bottom) + this.getOcclusion(left) + baseOcclusion) / 4;
+		brOcclusion = (brOcclusion + this.getOcclusion(bottom) + this.getOcclusion(right) + baseOcclusion) / 4;
+		trOcclusion = (trOcclusion + this.getOcclusion(top) + this.getOcclusion(right) + baseOcclusion) / 4;
 
-			trOcclusion = (trOcclusion + this.getOcclusion(top) + this.getOcclusion(right) + baseOcclusion) / 4;
-			tlOcclusion = (tlOcclusion + this.getOcclusion(top) + this.getOcclusion(left) + baseOcclusion) / 4;
-			blOcclusion = (blOcclusion + this.getOcclusion(bottom) + this.getOcclusion(left) + baseOcclusion) / 4;
-			brOcclusion = (brOcclusion + this.getOcclusion(bottom) + this.getOcclusion(right) + baseOcclusion) / 4;
-		}
+		final double topV = icon.getInterpolatedV(v1);
+		final double rightU = icon.getInterpolatedU(u2);
+		final double bottomV = icon.getInterpolatedV(v2);
+		final double leftU = icon.getInterpolatedU(u1);
 
-		final Tessellator t = Tessellator.instance;
+		t.setBrightness(tlLight);
+		t.setColorOpaque_F(this.red * tlOcclusion, this.green * tlOcclusion, this.blue * tlOcclusion);
+		this.addVertex(new Vertex(dir, depth, x1, y1), leftU, topV);
 
-		if (this.useOcclusion) {
-			t.setBrightness(trLight);
-			t.setColorOpaque_F(this.red * trOcclusion, this.green * trOcclusion, this.blue * trOcclusion);
-		} else {
-			t.setBrightness(baseLight);
-			t.setColorOpaque_F(this.red, this.green, this.blue);
-		}
+		t.setBrightness(blLight);
+		t.setColorOpaque_F(this.red * blOcclusion, this.green * blOcclusion, this.blue * blOcclusion);
+		this.addVertex(new Vertex(dir, depth, x1, y2), leftU, bottomV);
 
-		final double topV = icon.getInterpolatedV(vMin);
-		final double rightU = icon.getInterpolatedU(uMax);
-		final double bottomV = icon.getInterpolatedV(vMax);
-		final double leftU = icon.getInterpolatedU(uMin);
+		t.setBrightness(brLight);
+		t.setColorOpaque_F(this.red * brOcclusion, this.green * brOcclusion, this.blue * brOcclusion);
+		this.addVertex(new Vertex(dir, depth, x2, y2), rightU, bottomV);
 
-		Vertex vertex = new Vertex(dir, depth, xMax, yMin);
+		t.setBrightness(trLight);
+		t.setColorOpaque_F(this.red * trOcclusion, this.green * trOcclusion, this.blue * trOcclusion);
+		this.addVertex(new Vertex(dir, depth, x2, y1), rightU, topV);
+	}
 
-		t.addVertexWithUV(this.x + vertex.x, this.y + vertex.y, this.z + vertex.z, rightU, topV);
+	public void renderQuadWithoutOcclusion(final ForgeDirection dir, final Icon icon, final double depth, final double x1, final double y1, final double x2, final double y2, final double u1, final double v1, final double u2, final double v2) {
+		final double topV = icon.getInterpolatedV(v1);
+		final double rightU = icon.getInterpolatedU(u2);
+		final double bottomV = icon.getInterpolatedV(v2);
+		final double leftU = icon.getInterpolatedU(u1);
 
-		if (this.useOcclusion) {
-			t.setBrightness(tlLight);
-			t.setColorOpaque_F(this.red * tlOcclusion, this.green * tlOcclusion, this.blue * tlOcclusion);
-		}
+		Tessellator.instance.setBrightness(this.getLight(depth <= 0 ? Offset.create(dir) : Offset.get(0, 0, 0)));
+		Tessellator.instance.setColorOpaque_F(this.red, this.green, this.blue);
 
-		vertex = new Vertex(dir, depth, xMin, yMin);
-
-		t.addVertexWithUV(this.x + vertex.x, this.y + vertex.y, this.z + vertex.z, leftU, topV);
-
-		if (this.useOcclusion) {
-			t.setBrightness(blLight);
-			t.setColorOpaque_F(this.red * blOcclusion, this.green * blOcclusion, this.blue * blOcclusion);
-		}
-
-		vertex = new Vertex(dir, depth, xMin, yMax);
-
-		t.addVertexWithUV(this.x + vertex.x, this.y + vertex.y, this.z + vertex.z, leftU, bottomV);
-
-		if (this.useOcclusion) {
-			t.setBrightness(brLight);
-			t.setColorOpaque_F(this.red * brOcclusion, this.green * brOcclusion, this.blue * brOcclusion);
-		}
-
-		vertex = new Vertex(dir, depth, xMax, yMax);
-
-		t.addVertexWithUV(this.x + vertex.x, this.y + vertex.y, this.z + vertex.z, rightU, bottomV);
-
-		return true;
+		this.addVertex(new Vertex(dir, depth, x1, y1), leftU, topV);
+		this.addVertex(new Vertex(dir, depth, x1, y2), leftU, bottomV);
+		this.addVertex(new Vertex(dir, depth, x2, y2), rightU, bottomV);
+		this.addVertex(new Vertex(dir, depth, x2, y1), rightU, topV);
 	}
 
 	private boolean shouldRenderQuad(final ForgeDirection dir, final double depth) {
