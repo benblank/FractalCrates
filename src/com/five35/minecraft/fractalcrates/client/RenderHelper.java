@@ -60,7 +60,26 @@ public class RenderHelper {
 		}
 	}
 
-	private final static Map<ForgeDirection, ForgeDirection> dirTop = new HashMap<ForgeDirection, ForgeDirection>();
+	private static class Vertex {
+		public final double x;
+		public final double y;
+		public final double z;
+
+		private static double dim(final double pos, final int offset) {
+			return (offset > 0 ? 1 : 0) + pos * offset * -1;
+		}
+
+		public Vertex(final ForgeDirection dir, final double depth, final double x, final double y) {
+			final ForgeDirection topDir = RenderHelper.dirTop.get(dir);
+			final ForgeDirection leftDir = topDir.getRotation(dir.getOpposite());
+
+			this.x = Vertex.dim(depth, dir.offsetX) + Vertex.dim(x, leftDir.offsetX) + Vertex.dim(y, topDir.offsetX);
+			this.y = Vertex.dim(depth, dir.offsetY) + Vertex.dim(x, leftDir.offsetY) + Vertex.dim(y, topDir.offsetY);
+			this.z = Vertex.dim(depth, dir.offsetZ) + Vertex.dim(x, leftDir.offsetZ) + Vertex.dim(y, topDir.offsetZ);
+		}
+	}
+
+	final static Map<ForgeDirection, ForgeDirection> dirTop = new HashMap<ForgeDirection, ForgeDirection>();
 
 	static {
 		RenderHelper.dirTop.put(ForgeDirection.DOWN, ForgeDirection.NORTH);
@@ -219,7 +238,6 @@ public class RenderHelper {
 		}
 
 		final Tessellator t = Tessellator.instance;
-		double pointX, pointY, pointZ, pointU, pointV;
 
 		if (this.useOcclusion) {
 			t.setBrightness(trLight);
@@ -229,88 +247,41 @@ public class RenderHelper {
 			t.setColorOpaque_F(this.red, this.green, this.blue);
 		}
 
-		pointX = (leftDir.offsetX > 0 ? 1 : 0) + xMax * leftDir.offsetX * -1;
-		pointX += (topDir.offsetX > 0 ? 1 : 0) + yMin * topDir.offsetX * -1;
-		pointX += (dir.offsetX > 0 ? 1 : 0) + depth * dir.offsetX * -1;
+		final double topV = icon.getInterpolatedV(vMin);
+		final double rightU = icon.getInterpolatedU(uMax);
+		final double bottomV = icon.getInterpolatedV(vMax);
+		final double leftU = icon.getInterpolatedU(uMin);
 
-		pointY = (leftDir.offsetY > 0 ? 1 : 0) + xMax * leftDir.offsetY * -1;
-		pointY += (topDir.offsetY > 0 ? 1 : 0) + yMin * topDir.offsetY * -1;
-		pointY += (dir.offsetY > 0 ? 1 : 0) + depth * dir.offsetY * -1;
+		Vertex vertex = new Vertex(dir, depth, xMax, yMin);
 
-		pointZ = (leftDir.offsetZ > 0 ? 1 : 0) + xMax * leftDir.offsetZ * -1;
-		pointZ += (topDir.offsetZ > 0 ? 1 : 0) + yMin * topDir.offsetZ * -1;
-		pointZ += (dir.offsetZ > 0 ? 1 : 0) + depth * dir.offsetZ * -1;
-
-		pointU = icon.getInterpolatedU(uMax);
-		pointV = icon.getInterpolatedV(vMin);
-
-		t.addVertexWithUV(this.x + pointX, this.y + pointY, this.z + pointZ, pointU, pointV);
+		t.addVertexWithUV(this.x + vertex.x, this.y + vertex.y, this.z + vertex.z, rightU, topV);
 
 		if (this.useOcclusion) {
 			t.setBrightness(tlLight);
 			t.setColorOpaque_F(this.red * tlOcclusion, this.green * tlOcclusion, this.blue * tlOcclusion);
 		}
 
-		pointX = (leftDir.offsetX > 0 ? 1 : 0) + xMin * leftDir.offsetX * -1;
-		pointX += (topDir.offsetX > 0 ? 1 : 0) + yMin * topDir.offsetX * -1;
-		pointX += (dir.offsetX > 0 ? 1 : 0) + depth * dir.offsetX * -1;
+		vertex = new Vertex(dir, depth, xMin, yMin);
 
-		pointY = (leftDir.offsetY > 0 ? 1 : 0) + xMin * leftDir.offsetY * -1;
-		pointY += (topDir.offsetY > 0 ? 1 : 0) + yMin * topDir.offsetY * -1;
-		pointY += (dir.offsetY > 0 ? 1 : 0) + depth * dir.offsetY * -1;
-
-		pointZ = (leftDir.offsetZ > 0 ? 1 : 0) + xMin * leftDir.offsetZ * -1;
-		pointZ += (topDir.offsetZ > 0 ? 1 : 0) + yMin * topDir.offsetZ * -1;
-		pointZ += (dir.offsetZ > 0 ? 1 : 0) + depth * dir.offsetZ * -1;
-
-		pointU = icon.getInterpolatedU(uMin);
-		pointV = icon.getInterpolatedV(vMin);
-
-		t.addVertexWithUV(this.x + pointX, this.y + pointY, this.z + pointZ, pointU, pointV);
+		t.addVertexWithUV(this.x + vertex.x, this.y + vertex.y, this.z + vertex.z, leftU, topV);
 
 		if (this.useOcclusion) {
 			t.setBrightness(blLight);
 			t.setColorOpaque_F(this.red * blOcclusion, this.green * blOcclusion, this.blue * blOcclusion);
 		}
 
-		pointX = (leftDir.offsetX > 0 ? 1 : 0) + xMin * leftDir.offsetX * -1;
-		pointX += (topDir.offsetX > 0 ? 1 : 0) + yMax * topDir.offsetX * -1;
-		pointX += (dir.offsetX > 0 ? 1 : 0) + depth * dir.offsetX * -1;
+		vertex = new Vertex(dir, depth, xMin, yMax);
 
-		pointY = (leftDir.offsetY > 0 ? 1 : 0) + xMin * leftDir.offsetY * -1;
-		pointY += (topDir.offsetY > 0 ? 1 : 0) + yMax * topDir.offsetY * -1;
-		pointY += (dir.offsetY > 0 ? 1 : 0) + depth * dir.offsetY * -1;
-
-		pointZ = (leftDir.offsetZ > 0 ? 1 : 0) + xMin * leftDir.offsetZ * -1;
-		pointZ += (topDir.offsetZ > 0 ? 1 : 0) + yMax * topDir.offsetZ * -1;
-		pointZ += (dir.offsetZ > 0 ? 1 : 0) + depth * dir.offsetZ * -1;
-
-		pointU = icon.getInterpolatedU(uMin);
-		pointV = icon.getInterpolatedV(vMax);
-
-		t.addVertexWithUV(this.x + pointX, this.y + pointY, this.z + pointZ, pointU, pointV);
+		t.addVertexWithUV(this.x + vertex.x, this.y + vertex.y, this.z + vertex.z, leftU, bottomV);
 
 		if (this.useOcclusion) {
 			t.setBrightness(brLight);
 			t.setColorOpaque_F(this.red * brOcclusion, this.green * brOcclusion, this.blue * brOcclusion);
 		}
 
-		pointX = (leftDir.offsetX > 0 ? 1 : 0) + xMax * leftDir.offsetX * -1;
-		pointX += (topDir.offsetX > 0 ? 1 : 0) + yMax * topDir.offsetX * -1;
-		pointX += (dir.offsetX > 0 ? 1 : 0) + depth * dir.offsetX * -1;
+		vertex = new Vertex(dir, depth, xMax, yMax);
 
-		pointY = (leftDir.offsetY > 0 ? 1 : 0) + xMax * leftDir.offsetY * -1;
-		pointY += (topDir.offsetY > 0 ? 1 : 0) + yMax * topDir.offsetY * -1;
-		pointY += (dir.offsetY > 0 ? 1 : 0) + depth * dir.offsetY * -1;
-
-		pointZ = (leftDir.offsetZ > 0 ? 1 : 0) + xMax * leftDir.offsetZ * -1;
-		pointZ += (topDir.offsetZ > 0 ? 1 : 0) + yMax * topDir.offsetZ * -1;
-		pointZ += (dir.offsetZ > 0 ? 1 : 0) + depth * dir.offsetZ * -1;
-
-		pointU = icon.getInterpolatedU(uMax);
-		pointV = icon.getInterpolatedV(vMax);
-
-		t.addVertexWithUV(this.x + pointX, this.y + pointY, this.z + pointZ, pointU, pointV);
+		t.addVertexWithUV(this.x + vertex.x, this.y + vertex.y, this.z + vertex.z, rightU, bottomV);
 
 		return true;
 	}
