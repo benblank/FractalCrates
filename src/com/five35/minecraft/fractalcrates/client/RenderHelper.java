@@ -212,8 +212,7 @@ public class RenderHelper {
 
 		final Offset base = depth <= 0 ? Offset.create(dir) : Offset.get(0, 0, 0);
 		final int baseLight = this.getLight(base);
-
-		final float baseOcclusion = this.getOcclusion(Offset.get(0, 0, 0)); // MC doesn't offset occlusion based on depth
+		final float baseOcclusion = this.getOcclusion(base);
 
 		final Offset top = base.add(topDir);
 		final Offset left = base.add(leftDir);
