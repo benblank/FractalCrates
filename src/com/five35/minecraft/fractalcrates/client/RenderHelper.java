@@ -17,7 +17,7 @@ public class RenderHelper {
 		public final int y;
 		public final int z;
 
-		public static Offset create(final ForgeDirection dir) {
+		public static Offset get(final ForgeDirection dir) {
 			return Offset.get(dir.offsetX, dir.offsetY, dir.offsetZ);
 		}
 
@@ -222,7 +222,7 @@ public class RenderHelper {
 		final ForgeDirection leftDir = topDir.getRotation(dir.getOpposite());
 		final Tessellator t = Tessellator.instance;
 
-		final Offset base = depth <= 0 ? Offset.create(dir) : Offset.get(0, 0, 0);
+		final Offset base = depth <= 0 ? Offset.get(dir) : Offset.get(0, 0, 0);
 		final int baseLight = this.getLight(base);
 		final float baseOcclusion = this.getOcclusion(base);
 
@@ -303,7 +303,7 @@ public class RenderHelper {
 
 		final float colorScalar = RenderHelper.dirColorScalar.get(dir).floatValue();
 
-		Tessellator.instance.setBrightness(this.getLight(depth <= 0 ? Offset.create(dir) : Offset.get(0, 0, 0)));
+		Tessellator.instance.setBrightness(this.getLight(depth <= 0 ? Offset.get(dir) : Offset.get(0, 0, 0)));
 		Tessellator.instance.setColorOpaque_F(this.red * colorScalar, this.green * colorScalar, this.blue * colorScalar);
 
 		this.addVertex(new Vertex(dir, depth, x1, y1), leftU, topV);
@@ -317,6 +317,6 @@ public class RenderHelper {
 			return true;
 		}
 
-		return !this.isOpaqueCube(Offset.create(dir));
+		return !this.isOpaqueCube(Offset.get(dir));
 	}
 }
