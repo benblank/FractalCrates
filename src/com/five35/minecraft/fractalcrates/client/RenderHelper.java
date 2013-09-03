@@ -61,30 +61,14 @@ public class RenderHelper {
 	}
 
 	private final static Map<ForgeDirection, ForgeDirection> dirTop = new HashMap<ForgeDirection, ForgeDirection>();
-	private final static Map<ForgeDirection, ForgeDirection> dirLeft = new HashMap<ForgeDirection, ForgeDirection>();
-	private final static Map<ForgeDirection, Boolean> mirrored = new HashMap<ForgeDirection, Boolean>();
 
 	static {
 		RenderHelper.dirTop.put(ForgeDirection.DOWN, ForgeDirection.NORTH);
 		RenderHelper.dirTop.put(ForgeDirection.UP, ForgeDirection.NORTH);
-		RenderHelper.dirTop.put(ForgeDirection.NORTH, ForgeDirection.DOWN);
-		RenderHelper.dirTop.put(ForgeDirection.SOUTH, ForgeDirection.DOWN);
-		RenderHelper.dirTop.put(ForgeDirection.WEST, ForgeDirection.DOWN);
-		RenderHelper.dirTop.put(ForgeDirection.EAST, ForgeDirection.DOWN);
-
-		RenderHelper.dirLeft.put(ForgeDirection.DOWN, ForgeDirection.EAST);
-		RenderHelper.dirLeft.put(ForgeDirection.UP, ForgeDirection.WEST);
-		RenderHelper.dirLeft.put(ForgeDirection.NORTH, ForgeDirection.EAST);
-		RenderHelper.dirLeft.put(ForgeDirection.SOUTH, ForgeDirection.WEST);
-		RenderHelper.dirLeft.put(ForgeDirection.WEST, ForgeDirection.NORTH);
-		RenderHelper.dirLeft.put(ForgeDirection.EAST, ForgeDirection.SOUTH);
-
-		RenderHelper.mirrored.put(ForgeDirection.DOWN, Boolean.TRUE);
-		RenderHelper.mirrored.put(ForgeDirection.UP, Boolean.TRUE);
-		RenderHelper.mirrored.put(ForgeDirection.NORTH, Boolean.FALSE);
-		RenderHelper.mirrored.put(ForgeDirection.SOUTH, Boolean.TRUE);
-		RenderHelper.mirrored.put(ForgeDirection.WEST, Boolean.FALSE);
-		RenderHelper.mirrored.put(ForgeDirection.EAST, Boolean.TRUE);
+		RenderHelper.dirTop.put(ForgeDirection.NORTH, ForgeDirection.UP);
+		RenderHelper.dirTop.put(ForgeDirection.SOUTH, ForgeDirection.UP);
+		RenderHelper.dirTop.put(ForgeDirection.WEST, ForgeDirection.UP);
+		RenderHelper.dirTop.put(ForgeDirection.EAST, ForgeDirection.UP);
 	}
 
 	private final Map<Offset, Boolean> blocksLight = new HashMap<Offset, Boolean>();
@@ -181,24 +165,22 @@ public class RenderHelper {
 			return false;
 		}
 
-		int trLight = 15, tlLight = 15, blLight = 15, brLight = 15;
+		int trLight = 0xF000F, tlLight = 0xF000F, blLight = 0xF000F, brLight = 0xF000F;
 		float trOcclusion = 1, tlOcclusion = 1, blOcclusion = 1, brOcclusion = 1;
 
 		final Offset base = depth <= 0 ? Offset.create(dir) : Offset.get(0, 0, 0);
 		final int baseLight = this.getLight(base);
 
 		final ForgeDirection topDir = RenderHelper.dirTop.get(dir);
-		final ForgeDirection leftDir = RenderHelper.dirLeft.get(dir);
-		final ForgeDirection bottomDir = topDir.getOpposite();
-		final ForgeDirection rightDir = leftDir.getOpposite();
+		final ForgeDirection leftDir = topDir.getRotation(dir.getOpposite());
 
 		if (this.useOcclusion) {
 			final float baseOcclusion = this.getOcclusion(Offset.get(0, 0, 0)); // MC doesn't offset occlusion based on depth
 
 			final Offset top = base.add(topDir);
 			final Offset left = base.add(leftDir);
-			final Offset bottom = base.add(bottomDir);
-			final Offset right = base.add(rightDir);
+			final Offset bottom = base.add(topDir.getOpposite());
+			final Offset right = base.add(leftDir.getOpposite());
 
 			final boolean topBlocksLight = this.doesBlockLight(top.add(base));
 			final boolean leftBlocksLight = this.doesBlockLight(left.add(base));
@@ -210,10 +192,20 @@ public class RenderHelper {
 			blLight = bottomBlocksLight && leftBlocksLight ? this.getLight(left) : this.getLight(bottom.add(left));
 			brLight = bottomBlocksLight && rightBlocksLight ? this.getLight(right) : this.getLight(bottom.add(right));
 
-			trLight = trLight + this.getLight(top) + this.getLight(right) + baseLight >> 2;
-			tlLight = tlLight + this.getLight(top) + this.getLight(left) + baseLight >> 2;
-			blLight = blLight + this.getLight(bottom) + this.getLight(left) + baseLight >> 2;
-			brLight = brLight + this.getLight(bottom) + this.getLight(right) + baseLight >> 2;
+			int topLight = this.getLight(top);
+			int leftLight = this.getLight(left);
+			int bottomLight = this.getLight(bottom);
+			int rightLight = this.getLight(right);
+
+			topLight = topLight > 0 ? topLight : baseLight;
+			leftLight = leftLight > 0 ? leftLight : baseLight;
+			bottomLight = bottomLight > 0 ? bottomLight : baseLight;
+			rightLight = rightLight > 0 ? rightLight : baseLight;
+
+			trLight = (trLight > 0 ? trLight : baseLight) + topLight + rightLight + baseLight >> 2;
+			tlLight = (tlLight > 0 ? tlLight : baseLight) + topLight + leftLight + baseLight >> 2;
+			blLight = (blLight > 0 ? blLight : baseLight) + bottomLight + leftLight + baseLight >> 2;
+			brLight = (brLight > 0 ? brLight : baseLight) + bottomLight + rightLight + baseLight >> 2;
 
 			trOcclusion = topBlocksLight && rightBlocksLight ? this.getOcclusion(right) : this.getOcclusion(top.add(right));
 			tlOcclusion = topBlocksLight && leftBlocksLight ? this.getOcclusion(left) : this.getOcclusion(top.add(left));
@@ -228,7 +220,6 @@ public class RenderHelper {
 
 		final Tessellator t = Tessellator.instance;
 		double pointX, pointY, pointZ, pointU, pointV;
-		final boolean mirror = RenderHelper.mirrored.get(dir).booleanValue();
 
 		if (this.useOcclusion) {
 			t.setBrightness(trLight);
@@ -238,9 +229,18 @@ public class RenderHelper {
 			t.setColorOpaque_F(this.red, this.green, this.blue);
 		}
 
-		pointX = -leftDir.offsetX * xMax + -topDir.offsetX * yMin + -dir.offsetX * depth;
-		pointY = -leftDir.offsetY * xMax + -topDir.offsetY * yMin + -dir.offsetY * depth;
-		pointZ = -leftDir.offsetZ * xMax + -topDir.offsetZ * yMin + -dir.offsetZ * depth;
+		pointX = (leftDir.offsetX > 0 ? 1 : 0) + xMax * leftDir.offsetX * -1;
+		pointX += (topDir.offsetX > 0 ? 1 : 0) + yMin * topDir.offsetX * -1;
+		pointX += (dir.offsetX > 0 ? 1 : 0) + depth * dir.offsetX * -1;
+
+		pointY = (leftDir.offsetY > 0 ? 1 : 0) + xMax * leftDir.offsetY * -1;
+		pointY += (topDir.offsetY > 0 ? 1 : 0) + yMin * topDir.offsetY * -1;
+		pointY += (dir.offsetY > 0 ? 1 : 0) + depth * dir.offsetY * -1;
+
+		pointZ = (leftDir.offsetZ > 0 ? 1 : 0) + xMax * leftDir.offsetZ * -1;
+		pointZ += (topDir.offsetZ > 0 ? 1 : 0) + yMin * topDir.offsetZ * -1;
+		pointZ += (dir.offsetZ > 0 ? 1 : 0) + depth * dir.offsetZ * -1;
+
 		pointU = icon.getInterpolatedU(uMax);
 		pointV = icon.getInterpolatedV(vMin);
 
@@ -251,39 +251,66 @@ public class RenderHelper {
 			t.setColorOpaque_F(this.red * tlOcclusion, this.green * tlOcclusion, this.blue * tlOcclusion);
 		}
 
-		pointX = this.x + -leftDir.offsetX * xMin + -topDir.offsetX * yMin + -dir.offsetX * depth;
-		pointY = this.y + -leftDir.offsetY * xMin + -topDir.offsetY * yMin + -dir.offsetY * depth;
-		pointZ = this.z + -leftDir.offsetZ * xMin + -topDir.offsetZ * yMin + -dir.offsetZ * depth;
+		pointX = (leftDir.offsetX > 0 ? 1 : 0) + xMin * leftDir.offsetX * -1;
+		pointX += (topDir.offsetX > 0 ? 1 : 0) + yMin * topDir.offsetX * -1;
+		pointX += (dir.offsetX > 0 ? 1 : 0) + depth * dir.offsetX * -1;
+
+		pointY = (leftDir.offsetY > 0 ? 1 : 0) + xMin * leftDir.offsetY * -1;
+		pointY += (topDir.offsetY > 0 ? 1 : 0) + yMin * topDir.offsetY * -1;
+		pointY += (dir.offsetY > 0 ? 1 : 0) + depth * dir.offsetY * -1;
+
+		pointZ = (leftDir.offsetZ > 0 ? 1 : 0) + xMin * leftDir.offsetZ * -1;
+		pointZ += (topDir.offsetZ > 0 ? 1 : 0) + yMin * topDir.offsetZ * -1;
+		pointZ += (dir.offsetZ > 0 ? 1 : 0) + depth * dir.offsetZ * -1;
+
 		pointU = icon.getInterpolatedU(uMin);
 		pointV = icon.getInterpolatedV(vMin);
 
-		t.addVertexWithUV(pointX, pointY, pointZ, pointU, pointV);
+		t.addVertexWithUV(this.x + pointX, this.y + pointY, this.z + pointZ, pointU, pointV);
 
 		if (this.useOcclusion) {
 			t.setBrightness(blLight);
 			t.setColorOpaque_F(this.red * blOcclusion, this.green * blOcclusion, this.blue * blOcclusion);
 		}
 
-		pointX = this.x + -leftDir.offsetX * xMin + -topDir.offsetX * yMax + -dir.offsetX * depth;
-		pointY = this.y + -leftDir.offsetY * xMin + -topDir.offsetY * yMax + -dir.offsetY * depth;
-		pointZ = this.z + -leftDir.offsetZ * xMin + -topDir.offsetZ * yMax + -dir.offsetZ * depth;
+		pointX = (leftDir.offsetX > 0 ? 1 : 0) + xMin * leftDir.offsetX * -1;
+		pointX += (topDir.offsetX > 0 ? 1 : 0) + yMax * topDir.offsetX * -1;
+		pointX += (dir.offsetX > 0 ? 1 : 0) + depth * dir.offsetX * -1;
+
+		pointY = (leftDir.offsetY > 0 ? 1 : 0) + xMin * leftDir.offsetY * -1;
+		pointY += (topDir.offsetY > 0 ? 1 : 0) + yMax * topDir.offsetY * -1;
+		pointY += (dir.offsetY > 0 ? 1 : 0) + depth * dir.offsetY * -1;
+
+		pointZ = (leftDir.offsetZ > 0 ? 1 : 0) + xMin * leftDir.offsetZ * -1;
+		pointZ += (topDir.offsetZ > 0 ? 1 : 0) + yMax * topDir.offsetZ * -1;
+		pointZ += (dir.offsetZ > 0 ? 1 : 0) + depth * dir.offsetZ * -1;
+
 		pointU = icon.getInterpolatedU(uMin);
 		pointV = icon.getInterpolatedV(vMax);
 
-		t.addVertexWithUV(pointX, pointY, pointZ, pointU, pointV);
+		t.addVertexWithUV(this.x + pointX, this.y + pointY, this.z + pointZ, pointU, pointV);
 
 		if (this.useOcclusion) {
 			t.setBrightness(brLight);
 			t.setColorOpaque_F(this.red * brOcclusion, this.green * brOcclusion, this.blue * brOcclusion);
 		}
 
-		pointX = this.x + -leftDir.offsetX * xMax + -topDir.offsetX * yMax + -dir.offsetX * depth;
-		pointY = this.y + -leftDir.offsetY * xMax + -topDir.offsetY * yMax + -dir.offsetY * depth;
-		pointZ = this.z + -leftDir.offsetZ * xMax + -topDir.offsetZ * yMax + -dir.offsetZ * depth;
+		pointX = (leftDir.offsetX > 0 ? 1 : 0) + xMax * leftDir.offsetX * -1;
+		pointX += (topDir.offsetX > 0 ? 1 : 0) + yMax * topDir.offsetX * -1;
+		pointX += (dir.offsetX > 0 ? 1 : 0) + depth * dir.offsetX * -1;
+
+		pointY = (leftDir.offsetY > 0 ? 1 : 0) + xMax * leftDir.offsetY * -1;
+		pointY += (topDir.offsetY > 0 ? 1 : 0) + yMax * topDir.offsetY * -1;
+		pointY += (dir.offsetY > 0 ? 1 : 0) + depth * dir.offsetY * -1;
+
+		pointZ = (leftDir.offsetZ > 0 ? 1 : 0) + xMax * leftDir.offsetZ * -1;
+		pointZ += (topDir.offsetZ > 0 ? 1 : 0) + yMax * topDir.offsetZ * -1;
+		pointZ += (dir.offsetZ > 0 ? 1 : 0) + depth * dir.offsetZ * -1;
+
 		pointU = icon.getInterpolatedU(uMax);
 		pointV = icon.getInterpolatedV(vMax);
 
-		t.addVertexWithUV(pointX, pointY, pointZ, pointU, pointV);
+		t.addVertexWithUV(this.x + pointX, this.y + pointY, this.z + pointZ, pointU, pointV);
 
 		return true;
 	}
