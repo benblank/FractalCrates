@@ -120,6 +120,7 @@ public class WorldBlockRenderHelper extends BlockRenderHelper {
 		}
 	}
 
+	@Override
 	protected void addVertex(final Vertex vertex, final double u, final double v) {
 		Tessellator.instance.addVertexWithUV(this.x + vertex.x, this.y + vertex.y, this.z + vertex.z, u, v);
 	}

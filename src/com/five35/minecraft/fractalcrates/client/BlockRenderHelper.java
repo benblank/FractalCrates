@@ -3,6 +3,7 @@ package com.five35.minecraft.fractalcrates.client;
 import java.util.HashMap;
 import java.util.Map;
 import net.minecraft.block.Block;
+import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.util.Icon;
 import net.minecraftforge.common.ForgeDirection;
 
@@ -43,6 +44,20 @@ public abstract class BlockRenderHelper {
 	protected BlockRenderHelper(final Block block, final int metadata) {
 		this.block = block;
 		this.metadata = metadata;
+	}
+
+	// this method must not be static, so that WorldBlockRenderHelper can override it
+	@SuppressWarnings("static-method")
+	protected void addVertex(final Vertex vertex, final double u, final double v) {
+		Tessellator.instance.addVertexWithUV(vertex.x, vertex.y, vertex.z, u, v);
+	}
+
+	public void begin() {
+		// subclasses may override this method to add before-all-rendering actions
+	}
+
+	public void end() {
+		// subclasses may override this method to add after-all-rendering actions
 	}
 
 	public boolean renderFace(final ForgeDirection dir) {

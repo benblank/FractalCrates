@@ -18,16 +18,8 @@ public class CrateRenderer implements ISimpleBlockRenderingHandler {
 		return this.renderId;
 	}
 
-	@Override
-	public void renderInventoryBlock(final Block block, final int metadata, final int modelId, final RenderBlocks renderer) {
-		// TODO Auto-generated method stub
-	}
-
-	@Override
-	public boolean renderWorldBlock(final IBlockAccess world, final int x, final int y, final int z, final Block block, final int modelId, final RenderBlocks renderer) {
+	private static boolean renderBlock(BlockRenderHelper helper) {
 		boolean rendered = false;
-
-		final BlockRenderHelper helper = new WorldBlockRenderHelper(block, world, x, y, z);
 
 		// full faces
 		rendered |= helper.renderFace(ForgeDirection.DOWN);
@@ -50,6 +42,16 @@ public class CrateRenderer implements ISimpleBlockRenderingHandler {
 		rendered |= helper.renderQuad(ForgeDirection.EAST, 15, 1, 0, 15, 15);
 
 		return rendered;
+	}
+
+	@Override
+	public void renderInventoryBlock(final Block block, final int metadata, final int modelId, final RenderBlocks renderer) {
+		CrateRenderer.renderBlock(new InventoryBlockRenderHelper(block, metadata));
+	}
+
+	@Override
+	public boolean renderWorldBlock(final IBlockAccess world, final int x, final int y, final int z, final Block block, final int modelId, final RenderBlocks renderer) {
+		return CrateRenderer.renderBlock(new WorldBlockRenderHelper(block, world, x, y, z));
 	}
 
 	@Override
