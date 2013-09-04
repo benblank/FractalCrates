@@ -1,9 +1,6 @@
 package com.five35.minecraft.fractalcrates.client;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
@@ -135,48 +132,13 @@ public class WorldBlockRenderHelper extends BlockRenderHelper {
 
 	private int getLight(final WorldBlockRenderHelper.Offset offset) {
 		if (!this.light.containsKey(offset)) {
-			// to prevent the internal faces of blocks marked as "opaque cubes"
-			// from being too dark, we erform our own light calculations
-			if (offset == WorldBlockRenderHelper.Offset.get(0, 0, 0)) {
-				final int downLight = this.getLight(WorldBlockRenderHelper.Offset.get(ForgeDirection.DOWN));
-				final int upLight = this.getLight(WorldBlockRenderHelper.Offset.get(ForgeDirection.UP));
-				final int northLight = this.getLight(WorldBlockRenderHelper.Offset.get(ForgeDirection.NORTH));
-				final int southLight = this.getLight(WorldBlockRenderHelper.Offset.get(ForgeDirection.SOUTH));
-				final int westLight = this.getLight(WorldBlockRenderHelper.Offset.get(ForgeDirection.WEST));
-				final int eastLight = this.getLight(WorldBlockRenderHelper.Offset.get(ForgeDirection.EAST));
-
-				final List<Integer> skyLight = new ArrayList<Integer>();
-				final List<Integer> blockLight = new ArrayList<Integer>();
-
-				skyLight.add(Integer.valueOf(downLight & 0xFF0000));
-				skyLight.add(Integer.valueOf(upLight & 0xFF0000));
-				skyLight.add(Integer.valueOf(northLight & 0xFF0000));
-				skyLight.add(Integer.valueOf(southLight & 0xFF0000));
-				skyLight.add(Integer.valueOf(westLight & 0xFF0000));
-				skyLight.add(Integer.valueOf(eastLight & 0xFF0000));
-
-				blockLight.add(Integer.valueOf(downLight & 0xFF));
-				blockLight.add(Integer.valueOf(upLight & 0xFF));
-				blockLight.add(Integer.valueOf(northLight & 0xFF));
-				blockLight.add(Integer.valueOf(southLight & 0xFF));
-				blockLight.add(Integer.valueOf(westLight & 0xFF));
-				blockLight.add(Integer.valueOf(eastLight & 0xFF));
-
-				this.light.put(offset, Integer.valueOf(Collections.max(skyLight).intValue() + Collections.max(blockLight).intValue()));
-			} else {
-				this.light.put(offset, Integer.valueOf(this.block.getMixedBrightnessForBlock(this.world, this.x + offset.x, this.y + offset.y, this.z + offset.z)));
-			}
+			this.light.put(offset, Integer.valueOf(this.block.getMixedBrightnessForBlock(this.world, this.x + offset.x, this.y + offset.y, this.z + offset.z)));
 		}
 
 		return this.light.get(offset).intValue();
 	}
 
 	private float getOcclusion(final WorldBlockRenderHelper.Offset offset) {
-		// prevent internal faces of "opaque cubes" from rendering too dark
-		if (offset == WorldBlockRenderHelper.Offset.get(0, 0, 0)) {
-			return 1;
-		}
-
 		if (!this.occlusion.containsKey(offset)) {
 			this.occlusion.put(offset, Float.valueOf(this.block.getAmbientOcclusionLightValue(this.world, this.x + offset.x, this.y + offset.y, this.z + offset.z)));
 		}

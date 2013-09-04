@@ -31,6 +31,11 @@ public class Crate extends BlockContainer {
 	}
 
 	@Override
+	public boolean isOpaqueCube() {
+		return false;
+	}
+
+	@Override
 	public boolean onBlockActivated(final World world, final int x, final int y, final int z, final EntityPlayer player, final int side, final float hitX, final float hitY, final float hitZ) {
 		final TileEntity te = world.getBlockTileEntity(x, y, z);
 
