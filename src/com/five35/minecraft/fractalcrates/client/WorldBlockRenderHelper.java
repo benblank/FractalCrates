@@ -12,8 +12,8 @@ import net.minecraft.util.Icon;
 import net.minecraft.world.IBlockAccess;
 import net.minecraftforge.common.ForgeDirection;
 
-public class RenderHelper {
-	private static class Offset {
+public class WorldBlockRenderHelper extends BlockRenderHelper {
+	protected static class Offset {
 		private static final Map<Integer, Offset> cache = new HashMap<Integer, Offset>();
 
 		public final int x;
@@ -63,51 +63,22 @@ public class RenderHelper {
 		}
 	}
 
-	private static class Vertex {
-		public final double x;
-		public final double y;
-		public final double z;
-
-		private static double dim(final double pos, final int offset) {
-			return (offset > 0 ? 1 : 0) + pos / 16 * offset * -1;
-		}
-
-		public Vertex(final ForgeDirection dir, final double depth, final double x, final double y) {
-			final ForgeDirection topDir = RenderHelper.dirTop.get(dir);
-			final ForgeDirection leftDir = topDir.getRotation(dir.getOpposite());
-
-			this.x = Vertex.dim(depth, dir.offsetX) + Vertex.dim(x, leftDir.offsetX) + Vertex.dim(y, topDir.offsetX);
-			this.y = Vertex.dim(depth, dir.offsetY) + Vertex.dim(x, leftDir.offsetY) + Vertex.dim(y, topDir.offsetY);
-			this.z = Vertex.dim(depth, dir.offsetZ) + Vertex.dim(x, leftDir.offsetZ) + Vertex.dim(y, topDir.offsetZ);
-		}
-	}
-
-	final static Map<ForgeDirection, Float> dirColorScalar = new HashMap<ForgeDirection, Float>();
-	final static Map<ForgeDirection, ForgeDirection> dirTop = new HashMap<ForgeDirection, ForgeDirection>();
+	protected static final Map<ForgeDirection, Float> dirColorScalar = new HashMap<ForgeDirection, Float>();
 
 	static {
-		RenderHelper.dirColorScalar.put(ForgeDirection.DOWN, Float.valueOf(0.5f));
-		RenderHelper.dirColorScalar.put(ForgeDirection.UP, Float.valueOf(1.0f));
-		RenderHelper.dirColorScalar.put(ForgeDirection.NORTH, Float.valueOf(0.8f));
-		RenderHelper.dirColorScalar.put(ForgeDirection.SOUTH, Float.valueOf(0.8f));
-		RenderHelper.dirColorScalar.put(ForgeDirection.WEST, Float.valueOf(0.6f));
-		RenderHelper.dirColorScalar.put(ForgeDirection.EAST, Float.valueOf(0.6f));
-
-		RenderHelper.dirTop.put(ForgeDirection.DOWN, ForgeDirection.NORTH);
-		RenderHelper.dirTop.put(ForgeDirection.UP, ForgeDirection.NORTH);
-		RenderHelper.dirTop.put(ForgeDirection.NORTH, ForgeDirection.UP);
-		RenderHelper.dirTop.put(ForgeDirection.SOUTH, ForgeDirection.UP);
-		RenderHelper.dirTop.put(ForgeDirection.WEST, ForgeDirection.UP);
-		RenderHelper.dirTop.put(ForgeDirection.EAST, ForgeDirection.UP);
+		WorldBlockRenderHelper.dirColorScalar.put(ForgeDirection.DOWN, Float.valueOf(0.5f));
+		WorldBlockRenderHelper.dirColorScalar.put(ForgeDirection.UP, Float.valueOf(1.0f));
+		WorldBlockRenderHelper.dirColorScalar.put(ForgeDirection.NORTH, Float.valueOf(0.8f));
+		WorldBlockRenderHelper.dirColorScalar.put(ForgeDirection.SOUTH, Float.valueOf(0.8f));
+		WorldBlockRenderHelper.dirColorScalar.put(ForgeDirection.WEST, Float.valueOf(0.6f));
+		WorldBlockRenderHelper.dirColorScalar.put(ForgeDirection.EAST, Float.valueOf(0.6f));
 	}
 
-	private final Map<Offset, Boolean> blocksLight = new HashMap<Offset, Boolean>();
-	private final Map<Offset, Integer> light = new HashMap<Offset, Integer>();
-	private final Map<Offset, Float> occlusion = new HashMap<Offset, Float>();
-	private final Map<Offset, Boolean> opaqueCube = new HashMap<Offset, Boolean>();
+	private final Map<WorldBlockRenderHelper.Offset, Boolean> blocksLight = new HashMap<WorldBlockRenderHelper.Offset, Boolean>();
+	private final Map<WorldBlockRenderHelper.Offset, Integer> light = new HashMap<WorldBlockRenderHelper.Offset, Integer>();
+	private final Map<WorldBlockRenderHelper.Offset, Float> occlusion = new HashMap<WorldBlockRenderHelper.Offset, Float>();
+	private final Map<WorldBlockRenderHelper.Offset, Boolean> opaqueCube = new HashMap<WorldBlockRenderHelper.Offset, Boolean>();
 
-	private final Block block;
-	private final int metadata;
 	private final IBlockAccess world;
 	private final int x;
 	private final int y;
@@ -119,21 +90,21 @@ public class RenderHelper {
 	public float green = 1;
 	public float blue = 1;
 
-	public RenderHelper(final Block block) {
+	public WorldBlockRenderHelper(final Block block) {
 		this(block, 0);
 	}
 
-	public RenderHelper(final Block block, final IBlockAccess world, final int x, final int y, final int z) {
+	public WorldBlockRenderHelper(final Block block, final IBlockAccess world, final int x, final int y, final int z) {
 		this(block, world.getBlockMetadata(x, y, z), world, x, y, z);
 	}
 
-	public RenderHelper(final Block block, final int metadata) {
+	public WorldBlockRenderHelper(final Block block, final int metadata) {
 		this(block, metadata, null, 0, 0, 0);
 	}
 
-	private RenderHelper(final Block block, final int metadata, final IBlockAccess world, final int x, final int y, final int z) {
-		this.block = block;
-		this.metadata = metadata;
+	private WorldBlockRenderHelper(final Block block, final int metadata, final IBlockAccess world, final int x, final int y, final int z) {
+		super(block, metadata);
+
 		this.world = world;
 		this.x = x;
 		this.y = y;
@@ -149,11 +120,11 @@ public class RenderHelper {
 		}
 	}
 
-	private void addVertex(final Vertex vertex, final double u, final double v) {
+	protected void addVertex(final Vertex vertex, final double u, final double v) {
 		Tessellator.instance.addVertexWithUV(this.x + vertex.x, this.y + vertex.y, this.z + vertex.z, u, v);
 	}
 
-	private boolean doesBlockLight(final Offset offset) {
+	private boolean doesBlockLight(final WorldBlockRenderHelper.Offset offset) {
 		if (!this.blocksLight.containsKey(offset)) {
 			this.blocksLight.put(offset, Boolean.valueOf(!Block.canBlockGrass[this.world.getBlockId(this.x + offset.x, this.y + offset.y, this.z + offset.z)]));
 		}
@@ -161,17 +132,17 @@ public class RenderHelper {
 		return this.blocksLight.get(offset).booleanValue();
 	}
 
-	private int getLight(final Offset offset) {
+	private int getLight(final WorldBlockRenderHelper.Offset offset) {
 		if (!this.light.containsKey(offset)) {
 			// to prevent the internal faces of blocks marked as "opaque cubes"
 			// from being too dark, we erform our own light calculations
-			if (offset == Offset.get(0, 0, 0)) {
-				final int downLight = this.getLight(Offset.get(ForgeDirection.DOWN));
-				final int upLight = this.getLight(Offset.get(ForgeDirection.UP));
-				final int northLight = this.getLight(Offset.get(ForgeDirection.NORTH));
-				final int southLight = this.getLight(Offset.get(ForgeDirection.SOUTH));
-				final int westLight = this.getLight(Offset.get(ForgeDirection.WEST));
-				final int eastLight = this.getLight(Offset.get(ForgeDirection.EAST));
+			if (offset == WorldBlockRenderHelper.Offset.get(0, 0, 0)) {
+				final int downLight = this.getLight(WorldBlockRenderHelper.Offset.get(ForgeDirection.DOWN));
+				final int upLight = this.getLight(WorldBlockRenderHelper.Offset.get(ForgeDirection.UP));
+				final int northLight = this.getLight(WorldBlockRenderHelper.Offset.get(ForgeDirection.NORTH));
+				final int southLight = this.getLight(WorldBlockRenderHelper.Offset.get(ForgeDirection.SOUTH));
+				final int westLight = this.getLight(WorldBlockRenderHelper.Offset.get(ForgeDirection.WEST));
+				final int eastLight = this.getLight(WorldBlockRenderHelper.Offset.get(ForgeDirection.EAST));
 
 				final List<Integer> skyLight = new ArrayList<Integer>();
 				final List<Integer> blockLight = new ArrayList<Integer>();
@@ -199,9 +170,9 @@ public class RenderHelper {
 		return this.light.get(offset).intValue();
 	}
 
-	private float getOcclusion(final Offset offset) {
+	private float getOcclusion(final WorldBlockRenderHelper.Offset offset) {
 		// prevent internal faces of "opaque cubes" from rendering too dark
-		if (offset == Offset.get(0, 0, 0)) {
+		if (offset == WorldBlockRenderHelper.Offset.get(0, 0, 0)) {
 			return 1;
 		}
 
@@ -212,7 +183,7 @@ public class RenderHelper {
 		return this.occlusion.get(offset).floatValue();
 	}
 
-	private boolean isOpaqueCube(final Offset offset) {
+	private boolean isOpaqueCube(final WorldBlockRenderHelper.Offset offset) {
 		if (!this.opaqueCube.containsKey(offset)) {
 			this.opaqueCube.put(offset, Boolean.valueOf(this.world.isBlockOpaqueCube(this.x + offset.x, this.y + offset.y, this.z + offset.z)));
 		}
@@ -220,27 +191,7 @@ public class RenderHelper {
 		return this.opaqueCube.get(offset).booleanValue();
 	}
 
-	public boolean renderFace(final ForgeDirection dir) {
-		return this.renderFace(dir, this.block.getIcon(dir.ordinal(), this.metadata));
-	}
-
-	public boolean renderFace(final ForgeDirection dir, final Icon icon) {
-		// defaults are no depth (at face) and full width/height of face/texture
-		return this.renderQuad(dir, icon, 0, 0, 0, 16, 16);
-	}
-
-	public boolean renderQuad(final ForgeDirection dir, final double depth, final double x1, final double y1, final double x2, final double y2) {
-		return this.renderQuad(dir, depth, x1, y1, x2, y2, x1, y1, x2, y2);
-	}
-
-	public boolean renderQuad(final ForgeDirection dir, final double depth, final double x1, final double y1, final double x2, final double y2, final double u1, final double v1, final double u2, final double v2) {
-		return this.renderQuad(dir, this.block.getIcon(dir.ordinal(), this.metadata), depth, x1, y1, x2, y2, u1, v1, u2, v2);
-	}
-
-	private boolean renderQuad(final ForgeDirection dir, final Icon icon, final double depth, final double x1, final double y1, final double x2, final double y2) {
-		return this.renderQuad(dir, icon, depth, x1, y1, x2, y2, x1, y1, x2, y2);
-	}
-
+	@Override
 	public boolean renderQuad(final ForgeDirection dir, final Icon icon, final double depth, final double x1, final double y1, final double x2, final double y2, final double u1, final double v1, final double u2, final double v2) {
 		if (!this.shouldRenderQuad(dir, depth)) {
 			return false;
@@ -256,18 +207,18 @@ public class RenderHelper {
 	}
 
 	public void renderQuadWithOcclusion(final ForgeDirection dir, final Icon icon, final double depth, final double x1, final double y1, final double x2, final double y2, final double u1, final double v1, final double u2, final double v2) {
-		final ForgeDirection topDir = RenderHelper.dirTop.get(dir);
+		final ForgeDirection topDir = BlockRenderHelper.dirTop.get(dir);
 		final ForgeDirection leftDir = topDir.getRotation(dir.getOpposite());
 		final Tessellator t = Tessellator.instance;
 
-		final Offset base = depth <= 0 ? Offset.get(dir) : Offset.get(0, 0, 0);
+		final WorldBlockRenderHelper.Offset base = depth <= 0 ? WorldBlockRenderHelper.Offset.get(dir) : WorldBlockRenderHelper.Offset.get(0, 0, 0);
 		final int baseLight = this.getLight(base);
 		final float baseOcclusion = this.getOcclusion(base);
 
-		final Offset top = base.add(topDir);
-		final Offset left = base.add(leftDir);
-		final Offset bottom = base.add(topDir.getOpposite());
-		final Offset right = base.add(leftDir.getOpposite());
+		final WorldBlockRenderHelper.Offset top = base.add(topDir);
+		final WorldBlockRenderHelper.Offset left = base.add(leftDir);
+		final WorldBlockRenderHelper.Offset bottom = base.add(topDir.getOpposite());
+		final WorldBlockRenderHelper.Offset right = base.add(leftDir.getOpposite());
 
 		final boolean topBlocksLight = this.doesBlockLight(top.add(base));
 		final boolean leftBlocksLight = this.doesBlockLight(left.add(base));
@@ -304,7 +255,7 @@ public class RenderHelper {
 		brOcclusion = (brOcclusion + this.getOcclusion(bottom) + this.getOcclusion(right) + baseOcclusion) / 4;
 		trOcclusion = (trOcclusion + this.getOcclusion(top) + this.getOcclusion(right) + baseOcclusion) / 4;
 
-		final float colorScalar = RenderHelper.dirColorScalar.get(dir).floatValue();
+		final float colorScalar = WorldBlockRenderHelper.dirColorScalar.get(dir).floatValue();
 
 		tlOcclusion *= colorScalar;
 		blOcclusion *= colorScalar;
@@ -339,9 +290,9 @@ public class RenderHelper {
 		final double bottomV = icon.getInterpolatedV(v2);
 		final double leftU = icon.getInterpolatedU(u1);
 
-		final float colorScalar = RenderHelper.dirColorScalar.get(dir).floatValue();
+		final float colorScalar = WorldBlockRenderHelper.dirColorScalar.get(dir).floatValue();
 
-		Tessellator.instance.setBrightness(this.getLight(depth <= 0 ? Offset.get(dir) : Offset.get(0, 0, 0)));
+		Tessellator.instance.setBrightness(this.getLight(depth <= 0 ? WorldBlockRenderHelper.Offset.get(dir) : WorldBlockRenderHelper.Offset.get(0, 0, 0)));
 		Tessellator.instance.setColorOpaque_F(this.red * colorScalar, this.green * colorScalar, this.blue * colorScalar);
 
 		this.addVertex(new Vertex(dir, depth, x1, y1), leftU, topV);
@@ -355,6 +306,6 @@ public class RenderHelper {
 			return true;
 		}
 
-		return !this.isOpaqueCube(Offset.get(dir));
+		return !this.isOpaqueCube(WorldBlockRenderHelper.Offset.get(dir));
 	}
 }

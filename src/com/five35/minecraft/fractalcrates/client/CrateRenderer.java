@@ -27,7 +27,7 @@ public class CrateRenderer implements ISimpleBlockRenderingHandler {
 	public boolean renderWorldBlock(final IBlockAccess world, final int x, final int y, final int z, final Block block, final int modelId, final RenderBlocks renderer) {
 		boolean rendered = false;
 
-		final RenderHelper helper = new RenderHelper(block, world, x, y, z);
+		final BlockRenderHelper helper = new WorldBlockRenderHelper(block, world, x, y, z);
 
 		// full faces
 		rendered |= helper.renderFace(ForgeDirection.DOWN);
