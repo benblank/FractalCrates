@@ -4,6 +4,9 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.INetworkManager;
+import net.minecraft.network.packet.Packet;
+import net.minecraft.network.packet.Packet132TileEntityData;
 import net.minecraft.tileentity.TileEntity;
 
 public class CrateTileEntity extends TileEntity implements IInventory {
@@ -35,6 +38,15 @@ public class CrateTileEntity extends TileEntity implements IInventory {
 		}
 
 		return null;
+	}
+
+	@Override
+	public Packet getDescriptionPacket() {
+		final NBTTagCompound tag = new NBTTagCompound();
+
+		this.writeToNBT(tag);
+
+		return new Packet132TileEntityData(this.xCoord, this.yCoord, this.zCoord, 0, tag);
 	}
 
 	@Override
@@ -85,6 +97,11 @@ public class CrateTileEntity extends TileEntity implements IInventory {
 		}
 
 		return player.getDistanceSq(this.xCoord + .5, this.yCoord + .5, this.zCoord + .5) <= 64;
+	}
+
+	@Override
+	public void onDataPacket(final INetworkManager manager, final Packet132TileEntityData packet) {
+		this.readFromNBT(packet.customParam1);
 	}
 
 	@Override
