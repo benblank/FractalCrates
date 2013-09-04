@@ -112,7 +112,10 @@ public class CrateTileEntity extends TileEntity implements IInventory {
 	@Override
 	public void readFromNBT(final NBTTagCompound tag) {
 		super.readFromNBT(tag);
+		this.readStack(tag);
+	}
 
+	public void readStack(final NBTTagCompound tag) {
 		if (tag.hasKey("Contents")) {
 			this.contents = ItemStack.loadItemStackFromNBT(tag.getCompoundTag("Contents"));
 		}
@@ -126,10 +129,7 @@ public class CrateTileEntity extends TileEntity implements IInventory {
 		}
 	}
 
-	@Override
-	public void writeToNBT(final NBTTagCompound tag) {
-		super.writeToNBT(tag);
-
+	public void writeStack(final NBTTagCompound tag) {
 		if (this.contents != null) {
 			final NBTTagCompound tagContents = new NBTTagCompound();
 
@@ -137,5 +137,11 @@ public class CrateTileEntity extends TileEntity implements IInventory {
 
 			tag.setCompoundTag("Contents", tagContents);
 		}
+	}
+
+	@Override
+	public void writeToNBT(final NBTTagCompound tag) {
+		super.writeToNBT(tag);
+		this.writeStack(tag);
 	}
 }
