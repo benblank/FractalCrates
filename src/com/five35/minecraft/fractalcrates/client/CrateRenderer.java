@@ -120,8 +120,6 @@ public class CrateRenderer extends TileEntitySpecialRenderer implements IItemRen
 		final ItemStack copy = stack.copy();
 		copy.stackSize = 1;
 
-		this.itemEntity.setEntityItemStack(copy);
-
 		GL11.glPushMatrix();
 		GL11.glTranslated(x, y, z);
 
@@ -136,6 +134,9 @@ public class CrateRenderer extends TileEntitySpecialRenderer implements IItemRen
 			GL11.glTranslated(2.9 / 16 + itemX * 3.4 / 16, 2.9 / 16 + itemY * 3.4 / 16, 2.9 / 16 + itemZ * 3.4 / 16);
 			GL11.glScaled(0.75, 0.75, 0.75);
 
+			// this method can be called recursively, but there's only
+			// one item entity, so it needs reassigned each iteration
+			this.itemEntity.setEntityItemStack(copy);
 			this.itemRenderer.doRenderItem(this.itemEntity, 0, 0, 0, 0, 0);
 
 			GL11.glPopMatrix();
