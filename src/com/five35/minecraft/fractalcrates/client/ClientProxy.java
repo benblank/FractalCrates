@@ -3,11 +3,13 @@ package com.five35.minecraft.fractalcrates.client;
 import com.five35.minecraft.fractalcrates.CommonProxy;
 import com.five35.minecraft.fractalcrates.CrateContainer;
 import com.five35.minecraft.fractalcrates.CrateTileEntity;
+import com.five35.minecraft.fractalcrates.FractalCrates;
 import cpw.mods.fml.client.registry.ClientRegistry;
 import cpw.mods.fml.client.registry.RenderingRegistry;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
+import net.minecraftforge.client.MinecraftForgeClient;
 
 public class ClientProxy extends CommonProxy {
 	public ClientProxy() {
@@ -29,7 +31,10 @@ public class ClientProxy extends CommonProxy {
 
 	@Override
 	public void registerRenderers() {
-		RenderingRegistry.registerBlockHandler(new CrateRenderer(this.crateRendererId));
-		ClientRegistry.bindTileEntitySpecialRenderer(CrateTileEntity.class, new CrateTileEntityRenderer());
+		final CrateRenderer renderer = new CrateRenderer(this.crateRendererId);
+
+		RenderingRegistry.registerBlockHandler(renderer);
+		ClientRegistry.bindTileEntitySpecialRenderer(CrateTileEntity.class, renderer);
+		MinecraftForgeClient.registerItemRenderer(FractalCrates.crate.blockID, renderer);
 	}
 }

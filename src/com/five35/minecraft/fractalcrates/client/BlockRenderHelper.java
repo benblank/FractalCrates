@@ -52,14 +52,6 @@ public abstract class BlockRenderHelper {
 		Tessellator.instance.addVertexWithUV(vertex.x, vertex.y, vertex.z, u, v);
 	}
 
-	public void begin() {
-		// subclasses may override this method to add before-all-rendering actions
-	}
-
-	public void end() {
-		// subclasses may override this method to add after-all-rendering actions
-	}
-
 	public boolean renderFace(final ForgeDirection dir) {
 		return this.renderFace(dir, this.block.getIcon(dir.ordinal(), this.metadata));
 	}

@@ -4,7 +4,6 @@ import net.minecraft.block.Block;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.util.Icon;
 import net.minecraftforge.common.ForgeDirection;
-import org.lwjgl.opengl.GL11;
 
 public class InventoryBlockRenderHelper extends BlockRenderHelper {
 	public InventoryBlockRenderHelper(final Block block) {
@@ -13,17 +12,6 @@ public class InventoryBlockRenderHelper extends BlockRenderHelper {
 
 	public InventoryBlockRenderHelper(final Block block, final int metadata) {
 		super(block, metadata);
-	}
-
-	@Override
-	public void begin() {
-		GL11.glPushMatrix();
-		GL11.glTranslated(-0.5, -0.5, -0.5);
-	}
-
-	@Override
-	public void end() {
-		GL11.glPopMatrix();
 	}
 
 	@Override
