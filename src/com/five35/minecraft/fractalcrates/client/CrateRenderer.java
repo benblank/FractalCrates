@@ -146,7 +146,7 @@ public class CrateRenderer extends TileEntitySpecialRenderer implements IItemRen
 
 	@Override
 	public boolean renderWorldBlock(final IBlockAccess world, final int x, final int y, final int z, final Block block, final int modelId, final RenderBlocks renderer) {
-		return CrateRenderer.renderBlock(new WorldBlockRenderHelper(block, world, x, y, z));
+		return CrateRenderer.renderBlock(new WorldBlockRenderHelper(world, x, y, z));
 	}
 
 	@Override

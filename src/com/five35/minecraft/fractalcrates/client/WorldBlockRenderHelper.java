@@ -13,15 +13,15 @@ public class WorldBlockRenderHelper extends BlockRenderHelper {
 	protected static class Offset {
 		private static final Map<Integer, Offset> cache = new HashMap<Integer, Offset>();
 
-		public final int x;
-		public final int y;
-		public final int z;
+		protected final int x;
+		protected final int y;
+		protected final int z;
 
-		public static Offset get(final ForgeDirection dir) {
+		protected static Offset get(final ForgeDirection dir) {
 			return Offset.get(dir.offsetX, dir.offsetY, dir.offsetZ);
 		}
 
-		public static Offset get(final int x, final int y, final int z) {
+		protected static Offset get(final int x, final int y, final int z) {
 			final Integer hash = Integer.valueOf(Offset.hashCode(x, y, z));
 
 			if (!Offset.cache.containsKey(hash)) {
@@ -41,11 +41,11 @@ public class WorldBlockRenderHelper extends BlockRenderHelper {
 			this.z = z;
 		}
 
-		public Offset add(final ForgeDirection dir) {
+		protected Offset add(final ForgeDirection dir) {
 			return Offset.get(this.x + dir.offsetX, this.y + dir.offsetY, this.z + dir.offsetZ);
 		}
 
-		public Offset add(final Offset other) {
+		protected Offset add(final Offset other) {
 			return Offset.get(this.x + other.x, this.y + other.y, this.z + other.z);
 		}
 
@@ -87,34 +87,20 @@ public class WorldBlockRenderHelper extends BlockRenderHelper {
 	public float green = 1;
 	public float blue = 1;
 
-	public WorldBlockRenderHelper(final Block block) {
-		this(block, 0);
-	}
-
-	public WorldBlockRenderHelper(final Block block, final IBlockAccess world, final int x, final int y, final int z) {
-		this(block, world.getBlockMetadata(x, y, z), world, x, y, z);
-	}
-
-	public WorldBlockRenderHelper(final Block block, final int metadata) {
-		this(block, metadata, null, 0, 0, 0);
-	}
-
-	private WorldBlockRenderHelper(final Block block, final int metadata, final IBlockAccess world, final int x, final int y, final int z) {
-		super(block, metadata);
+	public WorldBlockRenderHelper(final IBlockAccess world, final int x, final int y, final int z) {
+		super(Block.blocksList[world.getBlockId(x, y, z)], world.getBlockMetadata(x, y, z));
 
 		this.world = world;
 		this.x = x;
 		this.y = y;
 		this.z = z;
-		this.useOcclusion = Minecraft.isAmbientOcclusionEnabled() && Block.lightValue[block.blockID] == 0;
+		this.useOcclusion = Minecraft.isAmbientOcclusionEnabled() && Block.lightValue[this.block.blockID] == 0;
 
-		if (world != null) {
-			final int color = block.colorMultiplier(world, x, y, z);
+		final int color = this.block.colorMultiplier(world, x, y, z);
 
-			this.red = (color >> 16 & 255) / 255f;
-			this.green = (color >> 8 & 255) / 255f;
-			this.blue = (color & 255) / 255f;
-		}
+		this.red = (color >> 16 & 255) / 255f;
+		this.green = (color >> 8 & 255) / 255f;
+		this.blue = (color & 255) / 255f;
 	}
 
 	@Override
@@ -265,7 +251,7 @@ public class WorldBlockRenderHelper extends BlockRenderHelper {
 	}
 
 	private boolean shouldRenderQuad(final ForgeDirection dir, final double depth) {
-		if (depth > 0 || this.world == null) {
+		if (depth > 0) {
 			return true;
 		}
 
