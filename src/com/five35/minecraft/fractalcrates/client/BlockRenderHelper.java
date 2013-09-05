@@ -53,7 +53,7 @@ public abstract class BlockRenderHelper {
 	}
 
 	public boolean renderFace(final ForgeDirection dir) {
-		return this.renderFace(dir, this.block.getIcon(dir.ordinal(), this.metadata));
+		return this.renderFace(dir, this.getIcon(dir));
 	}
 
 	public boolean renderFace(final ForgeDirection dir, final Icon icon) {
@@ -66,7 +66,7 @@ public abstract class BlockRenderHelper {
 	}
 
 	public boolean renderQuad(final ForgeDirection dir, final double depth, final double x1, final double y1, final double x2, final double y2, final double u1, final double v1, final double u2, final double v2) {
-		return this.renderQuad(dir, this.block.getIcon(dir.ordinal(), this.metadata), depth, x1, y1, x2, y2, u1, v1, u2, v2);
+		return this.renderQuad(dir, this.getIcon(dir), depth, x1, y1, x2, y2, u1, v1, u2, v2);
 	}
 
 	public boolean renderQuad(final ForgeDirection dir, final Icon icon, final double depth, final double x1, final double y1, final double x2, final double y2) {
@@ -74,5 +74,9 @@ public abstract class BlockRenderHelper {
 	}
 
 	public abstract boolean renderQuad(final ForgeDirection dir, final Icon icon, final double depth, final double x1, final double y1, final double x2, final double y2, final double u1, final double v1, final double u2, final double v2);
+
+	public Icon getIcon(ForgeDirection dir) {
+		return this.block.getIcon(dir.ordinal(), this.metadata);
+	}
 
 }
