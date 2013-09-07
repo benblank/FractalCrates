@@ -15,6 +15,7 @@ import net.minecraft.world.IBlockAccess;
 import net.minecraftforge.client.IItemRenderer;
 import net.minecraftforge.common.ForgeDirection;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL12;
 
 public class CrateRenderer extends TileEntitySpecialRenderer implements IItemRenderer, ISimpleBlockRenderingHandler {
 	private final EntityItem itemEntity = new EntityItem(null);
@@ -108,6 +109,8 @@ public class CrateRenderer extends TileEntitySpecialRenderer implements IItemRen
 
 		if (type == ItemRenderType.ENTITY) {
 			GL11.glPopMatrix();
+		} else if (type == ItemRenderType.INVENTORY) {
+			GL11.glEnable(GL12.GL_RESCALE_NORMAL);
 		}
 	}
 
