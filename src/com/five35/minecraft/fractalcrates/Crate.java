@@ -57,10 +57,13 @@ public class Crate extends BlockContainer {
 
 		if (this.tileEntityCache.containsKey(key)) {
 			final ItemStack stack = new ItemStack(this);
+			final CrateTileEntity te = this.tileEntityCache.get(key);
 
-			stack.stackTagCompound = new NBTTagCompound();
-			this.tileEntityCache.get(key).writeStack(stack.stackTagCompound);
-			this.tileEntityCache.remove(key);
+			if (te.contents != null) {
+				stack.stackTagCompound = new NBTTagCompound("tag"); // provide tag name so that items stack properly when picked up
+				te.writeStack(stack.stackTagCompound);
+				this.tileEntityCache.remove(key);
+			}
 
 			final ArrayList<ItemStack> drops = new ArrayList<ItemStack>();
 

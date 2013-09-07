@@ -10,7 +10,7 @@ import net.minecraft.network.packet.Packet132TileEntityData;
 import net.minecraft.tileentity.TileEntity;
 
 public class CrateTileEntity extends TileEntity implements IInventory {
-	private ItemStack contents;
+	ItemStack contents;
 
 	public CrateTileEntity() {}
 
