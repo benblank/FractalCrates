@@ -32,7 +32,7 @@ public class FractalCrates {
 		FractalCrates.crate = new Crate(FractalCrates.crateId);
 		FractalCrates.proxy.registerRenderers();
 
-		GameRegistry.registerBlock(FractalCrates.crate, FractalCrates.crate.getUnlocalizedName());
+		GameRegistry.registerBlock(FractalCrates.crate, CrateItem.class, FractalCrates.crate.getUnlocalizedName());
 		GameRegistry.registerTileEntity(CrateTileEntity.class, "fractalCrate");
 		GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(FractalCrates.crate), new String[] { "x x", "x x", "xxx" }, Character.valueOf('x'), "plankWood"));
 

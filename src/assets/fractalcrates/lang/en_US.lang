@@ -1,2 +1,7 @@
 container.fractalCrate=Crate
+item.crateOf=%s Crate
 tile.fractalCrate.name=Crate
+tooltip.contains=Contains %s
+tooltip.contents=%dx %s
+tooltip.crateOf=crate of
+tooltip.cratesOf=crates of
