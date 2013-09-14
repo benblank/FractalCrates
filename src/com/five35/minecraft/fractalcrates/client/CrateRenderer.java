@@ -121,35 +121,93 @@ public class CrateRenderer extends TileEntitySpecialRenderer implements IItemRen
 		}
 
 		final CrateTileEntity crateEntity = (CrateTileEntity) entity;
-		final ItemStack stack = crateEntity.getStackInSlot(0);
+		final ItemStack contents = crateEntity.getStackInSlot(0);
 
-		if (stack == null || stack.stackSize == 0) {
+		if (contents == null || contents.stackSize == 0) {
 			return;
 		}
 
-		final ItemStack copy = stack.copy();
+		final ItemStack copy = contents.copy();
 		copy.stackSize = 1;
 
 		GL11.glPushMatrix();
 		GL11.glTranslated(x, y, z);
 
-		for (int i = 0; i < stack.stackSize; i++) {
-			GL11.glPushMatrix();
+		final Block block = contents.itemID < Block.blocksList.length ? Block.blocksList[contents.itemID] : null;
 
-			final int itemX = i & 3;
-			final int itemY = i >> 4;
-			final int itemZ = i >> 2 & 3;
-
+		if (contents.getItemSpriteNumber() == 0 && block != null && RenderBlocks.renderItemIn3d(block.getRenderType())) {
 			// blocks render three "pixels" wide, with 2/5 of a pixel spacing between them
-			GL11.glTranslated(2.9 / 16 + itemX * 3.4 / 16, 2.9 / 16 + itemY * 3.4 / 16, 2.9 / 16 + itemZ * 3.4 / 16);
+			// 2.9 = 1 pixel of crate wall + .4 pixel gap + 1.5 pixels to offset entity origin (half their width)
+			double offset = 2.9 / 16;
+			GL11.glTranslated(offset, offset, offset);
+
+			// blocks normally render at 1/4 size; we need 3/16
 			GL11.glScaled(0.75, 0.75, 0.75);
 
-			// this method can be called recursively, but there's only
-			// one item entity, so it needs reassigned each iteration
-			this.itemEntity.setEntityItemStack(copy);
-			this.itemRenderer.doRenderItem(this.itemEntity, 0, 0, 0, 0, 0);
+			// 3.4 = 3 pixels per block + .4 pixel gap
+			offset = 3.4 / 12;
 
-			GL11.glPopMatrix();
+			for (int i = 0; i < contents.stackSize; i++) {
+				GL11.glPushMatrix();
+
+				final int itemX = i & 3;
+				final int itemY = i >> 4;
+				final int itemZ = i >> 2 & 3;
+
+				GL11.glTranslated(itemX * offset, itemY * offset, itemZ * offset);
+
+				// this method can be called recursively, but there's only
+				// one item entity, so it needs reassigned each iteration
+				this.itemEntity.setEntityItemStack(copy);
+				this.itemRenderer.doRenderItem(this.itemEntity, 0, 0, 0, 0, 0);
+
+				GL11.glPopMatrix();
+			}
+		} else {
+			// shrink to only cover the 13⅓x13⅓x13⅓ pixels in the center of the block
+			GL11.glTranslated(0.5, 0.5, 0.5);
+			GL11.glScaled(5 / 6d, 5 / 6d, 5 / 6d);
+			GL11.glTranslated(-0.5, -0.5, -0.5);
+
+			// scale to half size (four quadrants)
+			GL11.glScaled(0.5, 0.5, 0.5);
+
+			for (int i = 0; i < contents.stackSize; i++) {
+				GL11.glPushMatrix();
+
+				// add four items to each quadrant before moving on to the next
+				// fill all quadrants before moving to the next layer
+				final int itemX = i >> 2 & 1;
+				final int itemY = (i >> 4) * 4 + (i & 3);
+				final int itemZ = i >> 3 & 1;
+
+				// 4/31 arranges the vertical stack so that the top of the
+				// topmost items coincides with the top of the block and the
+				// bottom of the bottommost items coincides with the bottom of
+				// the block
+				GL11.glTranslated(itemX, itemY * 4 / 31d, itemZ);
+
+				// shrink down to a total of 6 pixels wide (from 6⅔) and rotate
+				// so that it will lay face-up
+				GL11.glTranslated(0.5, 0.5, 0.5);
+				GL11.glScaled(0.9, 0.9, 0.9);
+				GL11.glRotated(180, 0, 0, 1);
+				GL11.glTranslated(-0.5, 0.5, -0.5);
+
+				// lay the item flat
+				GL11.glRotated(-90, 1, 0, 0);
+
+				// reverse the transforms applied by the item renderer
+				GL11.glTranslated(0.5, -0.75, 0.35 / 16);
+				GL11.glScaled(2, 2, 2);
+
+				// this method can be called recursively, but there's only
+				// one item entity, so it needs reassigned each iteration
+				this.itemEntity.setEntityItemStack(copy);
+				this.itemRenderer.doRenderItem(this.itemEntity, 0, 0, 0, 0, 0);
+
+				GL11.glPopMatrix();
+			}
 		}
 
 		GL11.glPopMatrix();
