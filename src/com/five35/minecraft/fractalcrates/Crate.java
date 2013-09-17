@@ -12,6 +12,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.World;
 
 public class Crate extends BlockContainer {
@@ -56,18 +57,10 @@ public class Crate extends BlockContainer {
 		final Integer key = Crate.getCacheKey(x, y, z);
 
 		if (this.tileEntityCache.containsKey(key)) {
-			final ItemStack stack = new ItemStack(this);
-			final CrateTileEntity te = this.tileEntityCache.get(key);
-
-			if (te.contents != null) {
-				stack.stackTagCompound = new NBTTagCompound("tag"); // provide tag name so that items stack properly when picked up
-				te.writeStack(stack.stackTagCompound);
-				this.tileEntityCache.remove(key);
-			}
-
 			final ArrayList<ItemStack> drops = new ArrayList<ItemStack>();
 
-			drops.add(stack);
+			drops.add(this.getStack(this.tileEntityCache.get(key)));
+			this.tileEntityCache.remove(key);
 
 			return drops;
 		}
@@ -76,8 +69,30 @@ public class Crate extends BlockContainer {
 	}
 
 	@Override
+	public ItemStack getPickBlock(final MovingObjectPosition target, final World world, final int x, final int y, final int z) {
+		final TileEntity te = world.getBlockTileEntity(x, y, z);
+
+		if (te != null && te instanceof CrateTileEntity) {
+			return this.getStack((CrateTileEntity) te);
+		}
+
+		return super.getPickBlock(target, world, x, y, z);
+	}
+
+	@Override
 	public int getRenderType() {
 		return FractalCrates.proxy.crateRendererId;
+	}
+
+	private ItemStack getStack(final CrateTileEntity te) {
+		final ItemStack stack = new ItemStack(this);
+
+		if (te.contents != null) {
+			stack.stackTagCompound = new NBTTagCompound("tag"); // provide tag name so that items stack properly regardless of origin
+			te.writeStack(stack.stackTagCompound);
+		}
+
+		return stack;
 	}
 
 	@Override
