@@ -18,7 +18,7 @@ public class CrateGui extends GuiContainer {
 	protected void drawGuiContainerBackgroundLayer(final float f, final int i, final int j) {
 		GL11.glColor4f(1, 1, 1, 1);
 
-		this.mc.renderEngine.func_110577_a(new ResourceLocation("fractalcrates:textures/gui/crate.png"));
+		this.mc.renderEngine.bindTexture(new ResourceLocation("fractalcrates:textures/gui/crate.png"));
 		this.drawTexturedModalRect((this.width - this.xSize) / 2, (this.height - this.ySize) / 2, 0, 0, this.xSize, this.ySize);
 	}
 

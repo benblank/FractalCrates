@@ -27,7 +27,7 @@ public class Crate extends BlockContainer {
 
 		this.setCreativeTab(CreativeTabs.tabDecorations);
 		this.setHardness(2);
-		this.func_111022_d("fractalcrates:crate"); // setIconName
+		this.setTextureName("fractalcrates:crate");
 		this.setResistance(10);
 		this.setStepSound(Block.soundWoodFootstep);
 		this.setUnlocalizedName("fractalCrate");

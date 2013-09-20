@@ -25,15 +25,15 @@ public class CrateItem extends ItemBlock {
 			String info;
 
 			if (item instanceof CrateItem) {
-				info = I18n.func_135053_a(contents.stackSize > 1 ? "tooltip.cratesOf" : "tooltip.crateOf");
-				info = String.format(I18n.func_135053_a("tooltip.contents"), Integer.valueOf(contents.stackSize), info);
-				info = String.format(I18n.func_135053_a("tooltip.contains"), info);
+				info = I18n.getString(contents.stackSize > 1 ? "tooltip.cratesOf" : "tooltip.crateOf");
+				info = String.format(I18n.getString("tooltip.contents"), Integer.valueOf(contents.stackSize), info);
+				info = String.format(I18n.getString("tooltip.contains"), info);
 
 				infoList.add(info);
 
 				while (item instanceof CrateItem && contents.stackTagCompound != null && contents.stackTagCompound.hasKey("Contents")) {
-					info = I18n.func_135053_a(contents.stackSize > 1 ? "tooltip.cratesOf" : "tooltip.crateOf");
-					info = String.format(I18n.func_135053_a("tooltip.contents"), Integer.valueOf(contents.stackSize), info);
+					info = I18n.getString(contents.stackSize > 1 ? "tooltip.cratesOf" : "tooltip.crateOf");
+					info = String.format(I18n.getString("tooltip.contents"), Integer.valueOf(contents.stackSize), info);
 
 					infoList.add(info);
 
@@ -41,10 +41,10 @@ public class CrateItem extends ItemBlock {
 					item = contents.getItem();
 				}
 
-				infoList.add(String.format(I18n.func_135053_a("tooltip.contents"), Integer.valueOf(contents.stackSize), contents.getDisplayName()));
+				infoList.add(String.format(I18n.getString("tooltip.contents"), Integer.valueOf(contents.stackSize), contents.getDisplayName()));
 			} else {
-				info = String.format(I18n.func_135053_a("tooltip.contents"), Integer.valueOf(contents.stackSize), contents.getDisplayName());
-				info = String.format(I18n.func_135053_a("tooltip.contains"), info);
+				info = String.format(I18n.getString("tooltip.contents"), Integer.valueOf(contents.stackSize), contents.getDisplayName());
+				info = String.format(I18n.getString("tooltip.contains"), info);
 
 				infoList.add(info);
 			}
@@ -56,7 +56,7 @@ public class CrateItem extends ItemBlock {
 		if (stack.stackTagCompound != null && stack.stackTagCompound.hasKey("Contents")) {
 			final ItemStack contents = ItemStack.loadItemStackFromNBT(stack.stackTagCompound.getCompoundTag("Contents"));
 
-			return String.format(I18n.func_135053_a("item.crateOf"), contents.getDisplayName());
+			return String.format(I18n.getString("item.crateOf"), contents.getDisplayName());
 		}
 
 		return super.getItemDisplayName(stack);

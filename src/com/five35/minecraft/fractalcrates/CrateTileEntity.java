@@ -101,7 +101,7 @@ public class CrateTileEntity extends TileEntity implements IInventory {
 
 	@Override
 	public void onDataPacket(final INetworkManager manager, final Packet132TileEntityData packet) {
-		this.readFromNBT(packet.customParam1);
+		this.readFromNBT(packet.data);
 	}
 
 	@Override

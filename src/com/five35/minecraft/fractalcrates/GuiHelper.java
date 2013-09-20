@@ -17,7 +17,7 @@ public class GuiHelper {
 	private final int textHeight;
 
 	public static String getInventoryName(final IInventory inventory) {
-		return inventory.isInvNameLocalized() ? inventory.getInvName() : I18n.func_135053_a(inventory.getInvName());
+		return inventory.isInvNameLocalized() ? inventory.getInvName() : I18n.getString(inventory.getInvName());
 	}
 
 	public static List<Slot> getInventorySlots(final IInventory inventory, final int offset, final int cols, final int rows, final int left, final int top) {
