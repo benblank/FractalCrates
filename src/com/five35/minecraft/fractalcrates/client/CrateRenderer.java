@@ -98,8 +98,26 @@ public class CrateRenderer extends TileEntitySpecialRenderer implements IItemRen
 			contents.stackSize = 1;
 
 			GL11.glPushMatrix();
-			GL11.glTranslated(0.5, 0.5, 0.5);
-			GL11.glScaled(3.3, 3.3, 3.3);
+
+			final Block block = contents.itemID < Block.blocksList.length ? Block.blocksList[contents.itemID] : null;
+
+			if (contents.getItemSpriteNumber() == 0 && block != null && RenderBlocks.renderItemIn3d(block.getRenderType())) {
+				GL11.glTranslated(0.5, 0.5, 0.5);
+				GL11.glScaled(3.3, 3.3, 3.3);
+			} else {
+				GL11.glTranslated(0, 1, 0);
+				GL11.glRotated(-90, 1, 0, 0);
+				GL11.glRotated(180, 1, 1, 0);
+				GL11.glTranslated(-1, 1, 0);
+
+				GL11.glTranslated(0.5, -0.5, 0.5);
+				GL11.glScaled(0.875, 0.875, 0.875);
+				GL11.glTranslated(-0.5, 0.5, -0.5);
+
+				// reverse the transforms applied by the item renderer
+				GL11.glTranslated(0.5, -0.75, 0.35 / 16);
+				GL11.glScaled(2, 2, 2);
+			}
 
 			this.renderStack(contents);
 
