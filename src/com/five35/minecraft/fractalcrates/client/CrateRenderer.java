@@ -101,8 +101,7 @@ public class CrateRenderer extends TileEntitySpecialRenderer implements IItemRen
 			GL11.glTranslated(0.5, 0.5, 0.5);
 			GL11.glScaled(3.3, 3.3, 3.3);
 
-			this.itemEntity.setEntityItemStack(contents);
-			this.itemRenderer.doRenderItem(this.itemEntity, 0, 0, 0, 0, 0);
+			this.renderStack(contents);
 
 			GL11.glPopMatrix();
 		}
@@ -111,6 +110,15 @@ public class CrateRenderer extends TileEntitySpecialRenderer implements IItemRen
 			GL11.glPopMatrix();
 		} else if (type == ItemRenderType.INVENTORY) {
 			GL11.glEnable(GL12.GL_RESCALE_NORMAL);
+		}
+	}
+
+	private void renderStack(final ItemStack stack) {
+		try {
+			this.itemEntity.setEntityItemStack(stack);
+			this.itemRenderer.doRenderItem(this.itemEntity, 0, 0, 0, 0, 0);
+		} catch (final NullPointerException ex) {
+			// the render manager's render engine is null when rendering held items before the world is drawn
 		}
 	}
 
@@ -156,10 +164,7 @@ public class CrateRenderer extends TileEntitySpecialRenderer implements IItemRen
 
 				GL11.glTranslated(itemX * offset, itemY * offset, itemZ * offset);
 
-				// this method can be called recursively, but there's only
-				// one item entity, so it needs reassigned each iteration
-				this.itemEntity.setEntityItemStack(copy);
-				this.itemRenderer.doRenderItem(this.itemEntity, 0, 0, 0, 0, 0);
+				this.renderStack(copy);
 
 				GL11.glPopMatrix();
 			}
@@ -201,10 +206,7 @@ public class CrateRenderer extends TileEntitySpecialRenderer implements IItemRen
 				GL11.glTranslated(0.5, -0.75, 0.35 / 16);
 				GL11.glScaled(2, 2, 2);
 
-				// this method can be called recursively, but there's only
-				// one item entity, so it needs reassigned each iteration
-				this.itemEntity.setEntityItemStack(copy);
-				this.itemRenderer.doRenderItem(this.itemEntity, 0, 0, 0, 0, 0);
+				this.renderStack(copy);
 
 				GL11.glPopMatrix();
 			}
