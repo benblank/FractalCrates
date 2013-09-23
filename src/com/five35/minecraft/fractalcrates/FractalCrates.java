@@ -23,16 +23,13 @@ public class FractalCrates {
 	public static CommonProxy proxy;
 
 	static Configuration config;
-	static int crateId;
 
 	public static Crate crate;
 
 	@EventHandler
 	public static void init(@SuppressWarnings("unused") final FMLInitializationEvent event) {
-		FractalCrates.crate = new Crate(FractalCrates.crateId);
 		FractalCrates.proxy.registerRenderers();
 
-		GameRegistry.registerBlock(FractalCrates.crate, CrateItem.class, FractalCrates.crate.getUnlocalizedName());
 		GameRegistry.registerTileEntity(CrateTileEntity.class, "fractalCrate");
 		GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(FractalCrates.crate), new String[] { "x x", "x x", "xxx" }, Character.valueOf('x'), "plankWood"));
 
@@ -44,7 +41,9 @@ public class FractalCrates {
 		FractalCrates.config = new Configuration(event.getSuggestedConfigurationFile());
 		FractalCrates.config.load();
 
-		FractalCrates.crateId = FractalCrates.config.getBlock("crate", 2083).getInt();
+		FractalCrates.crate = new Crate(FractalCrates.config.getBlock("crate", 2083).getInt());
+
+		GameRegistry.registerBlock(FractalCrates.crate, CrateItem.class, FractalCrates.crate.getUnlocalizedName());
 
 		FractalCrates.config.save(); // if config file was missing, this will write the defaults
 	}
