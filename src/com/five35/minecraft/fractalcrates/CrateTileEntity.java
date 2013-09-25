@@ -8,6 +8,7 @@ import net.minecraft.network.INetworkManager;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.Packet132TileEntityData;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.world.WorldServer;
 
 public class CrateTileEntity extends TileEntity implements IInventory {
 	ItemStack contents;
@@ -105,6 +106,15 @@ public class CrateTileEntity extends TileEntity implements IInventory {
 	}
 
 	@Override
+	public void onInventoryChanged() {
+		if (!this.worldObj.isRemote) {
+			((WorldServer) this.worldObj).getPlayerManager().markBlockForUpdate(this.xCoord, this.yCoord, this.zCoord);
+		}
+
+		super.onInventoryChanged();
+	}
+
+	@Override
 	public void openChest() {
 		// crates don't track being opened or closed
 	}
@@ -118,6 +128,8 @@ public class CrateTileEntity extends TileEntity implements IInventory {
 	public void readStack(final NBTTagCompound tag) {
 		if (tag.hasKey("Contents")) {
 			this.contents = ItemStack.loadItemStackFromNBT(tag.getCompoundTag("Contents"));
+		} else {
+			this.contents = null;
 		}
 	}
 
