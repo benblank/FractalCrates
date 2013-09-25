@@ -9,6 +9,7 @@ import net.minecraft.block.material.Material;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.Container;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
@@ -69,6 +70,11 @@ public class Crate extends BlockContainer {
 	}
 
 	@Override
+	public int getComparatorInputOverride(final World world, final int x, final int y, final int z, final int unknown) {
+		return Container.calcRedstoneFromInventory((CrateTileEntity) world.getBlockTileEntity(x, y, z));
+	}
+
+	@Override
 	public ItemStack getPickBlock(final MovingObjectPosition target, final World world, final int x, final int y, final int z) {
 		final TileEntity te = world.getBlockTileEntity(x, y, z);
 
@@ -93,6 +99,11 @@ public class Crate extends BlockContainer {
 		}
 
 		return stack;
+	}
+
+	@Override
+	public boolean hasComparatorInputOverride() {
+		return true;
 	}
 
 	@Override
