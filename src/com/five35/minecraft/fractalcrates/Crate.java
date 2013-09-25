@@ -123,4 +123,12 @@ public class Crate extends BlockContainer {
 
 		super.onBlockPlacedBy(world, x, y, z, entity, stack);
 	}
+
+	@Override
+	public void onNeighborBlockChange(final World world, final int x, final int y, final int z, final int blockId) {
+		if (world.getBlockPowerInput(x, y, z) > 0) {
+			this.dropBlockAsItem(world, x, y, z, 0, 0);
+			world.setBlock(x, y, z, 0);
+		}
+	}
 }
