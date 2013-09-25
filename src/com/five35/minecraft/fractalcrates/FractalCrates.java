@@ -9,6 +9,8 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.network.NetworkMod;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.registry.GameRegistry;
+import net.minecraft.block.BlockDispenser;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.Configuration;
 import net.minecraftforge.oredict.ShapedOreRecipe;
@@ -44,6 +46,7 @@ public class FractalCrates {
 		FractalCrates.crate = new Crate(FractalCrates.config.getBlock("crate", 2083).getInt());
 
 		GameRegistry.registerBlock(FractalCrates.crate, CrateItem.class, FractalCrates.crate.getUnlocalizedName());
+		BlockDispenser.dispenseBehaviorRegistry.putObject(Item.itemsList[FractalCrates.crate.blockID], new CrateDispenserBehavior());
 
 		FractalCrates.config.save(); // if config file was missing, this will write the defaults
 	}
