@@ -3,9 +3,12 @@ package com.five35.minecraft.fractalcrates.client;
 import com.five35.minecraft.fractalcrates.CrateTileEntity;
 import cpw.mods.fml.client.registry.ISimpleBlockRenderingHandler;
 import net.minecraft.block.Block;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderBlocks;
+import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.entity.RenderItem;
 import net.minecraft.client.renderer.entity.RenderManager;
+import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.item.ItemStack;
@@ -104,6 +107,34 @@ public class CrateRenderer extends TileEntitySpecialRenderer implements IItemRen
 			if (contents.getItemSpriteNumber() == 0 && block != null && RenderBlocks.renderItemIn3d(block.getRenderType())) {
 				GL11.glTranslated(0.5, 0.5, 0.5);
 				GL11.glScaled(3.3, 3.3, 3.3);
+
+				this.renderStack(contents);
+			} else if (type == ItemRenderType.INVENTORY) {
+				// reverse the "block" transforms
+				GL11.glRotatef(45, 0, 1, 0);
+				GL11.glRotatef(-210, 1, 0, 0);
+				GL11.glScalef(1, 1, -1);
+				GL11.glTranslatef(-1, -0.5f, -1);
+				GL11.glScalef(0.1f, 0.1f, 0.1f);
+
+				final Icon icon = contents.getIconIndex();
+				final double leftU = icon.getMinU();
+				final double rightU = icon.getMaxU();
+				final double topV = icon.getMinV();
+				final double bottomV = icon.getMaxV();
+				final TextureManager tm = Minecraft.getMinecraft().getTextureManager();
+
+				tm.bindTexture(tm.getResourceLocation(contents.getItemSpriteNumber()));
+
+				// offset the icon to center it and bring it in front of the block
+				GL11.glTranslated(2, -3, 30);
+
+				Tessellator.instance.startDrawingQuads();
+				Tessellator.instance.addVertexWithUV(4, 4, 0, leftU, topV);
+				Tessellator.instance.addVertexWithUV(4, 12, 0, leftU, bottomV);
+				Tessellator.instance.addVertexWithUV(12, 12, 0, rightU, bottomV);
+				Tessellator.instance.addVertexWithUV(12, 4, 0, rightU, topV);
+				Tessellator.instance.draw();
 			} else {
 				GL11.glTranslated(0, 1, 0);
 				GL11.glRotated(-90, 1, 0, 0);
@@ -117,9 +148,9 @@ public class CrateRenderer extends TileEntitySpecialRenderer implements IItemRen
 				// reverse the transforms applied by the item renderer
 				GL11.glTranslated(0.5, -0.75, 0.35 / 16);
 				GL11.glScaled(2, 2, 2);
-			}
 
-			this.renderStack(contents);
+				this.renderStack(contents);
+			}
 
 			GL11.glPopMatrix();
 		}
